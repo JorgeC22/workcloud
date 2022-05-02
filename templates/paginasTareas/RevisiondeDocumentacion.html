@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="{{ url_for('validarDocumentos') }}" method="post">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Link</th>
+                    <th>Aceptar</th>
+                    <th>Rechazar</th>
+                </tr>
+            </thead>
+            <tbody id="bodytable">
+            </tbody>
+        </table>
+        <input type="hidden" name="idproceso" id="" value="{{ idproceso }}">
+        <button type="submit">Enviar</button>
+    </form>
+
+    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
+
+    <script type='text/javascript' src="{{ url_for('static', filename='js/tableDocumentos.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="{{ url_for('cargarDocumentos') }}" method="post">
+        <div>
+            <label for="">Acta Constitutiva</label>
+            <input type="hidden" name="acta" value="Acta Constitutiva">
+            <input type="text" name="acta">
+        </div>
+        <div>
+            <label for="">Carta Legal</label>
+            <input type="hidden" name="carta" value="Carta Legal">
+            <input type="text" name="carta">
+        </div>
+        <div>
+            <label for="">Comprobante</label>
+            <input type="hidden" name="comprobante" value="Comprobante">
+            <input type="text" name="comprobante">
+        </div>
+        <input type="hidden" name="idproceso" id="idproceso" value="{{ idproceso }}">
+        <button type="submit">Enviar</button>
+    </form>
+
+    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
+</body>
+</html>
