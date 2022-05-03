@@ -5,6 +5,7 @@ import uuid
 from xmlrpc.client import boolean
 import requests
 import json
+from datetime import datetime
 #ec2-54-188-33-247.us-west-2.compute.amazonaws.com:8080/
 
 host = "localhost:8080"
@@ -19,14 +20,6 @@ def inicioProceso():
             }
         } 
     }
-    #data = {
-    #    "variables": json_data
-    #}
-    #print(data)
-
-    #for d in data['variables']:
-    #    var = {"value": data['variables'][d],"type": "string"}
-    #    data['variables'][d] = var
 
     respuesta = requests.post(baseUrl, json=data)
     instanciaProceso = respuesta.json()
@@ -59,14 +52,6 @@ def getactividadProcesos(procesos):
       
     return listProcesos
 
-def getVariableJson(idproceso):
-    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idproceso)+"/variables"
-    respuesta = requests.get(baseUrl)
-    variables_json = respuesta.json()
-    jsons = variables_json['datosProceso']['value']
-    jsons = json.loads(jsons)
-    return jsons
-
 def getProcesoActividad(data):
     Proceso = data
     #print(p['idproceso'])
@@ -80,18 +65,6 @@ def getProcesoActividad(data):
       
     return Proceso
 #a['activityName']
-
-def fechahoraActividad(procesos):
-    
-    for p in procesos:
-        baseUrl = "http://"+host+"/engine-rest/task?processInstanceId="+str(p['id'])+""
-        respuesta = requests.get(baseUrl)
-        como_json = respuesta.json()
-        #print(como_json)
-        for x in como_json:
-            p['fechaHora'] = x['created']
-    
-    return procesos
 
 def gettask(idproceso):
     baseUrl = "http://"+host+"/engine-rest/task?processInstanceId="+str(idproceso)+""
@@ -122,34 +95,11 @@ def CompleteTask(idtask,dataJson):
         }
     }
 
-    #for d in data['variables']:
-    #    var = {"value": data['variables'][d],"type": "string"}
-    #    data['variables'][d] = var
-    
-    #print(data)
     respuesta = requests.post(baseUrl, json=data)
 
     print("La respuesta del servidor es: ")
     print(f"Tarea  Completado: {idtask}")
 
-
-
-def datosProcesos(listas,jsonData):
-    print(jsonData)
-    data = []
-    for l in listas:
-        if len(l) > 1:
-            json = {
-                "campo": l[0],
-                "rutaS3": "https://"+l[1],
-                "validacion": ""
-            }
-            data.append(json)
-    
-    jsonData['documentos'] = data
-
-    #print(jsonData)
-    return jsonData
 
 
 ############################################################################################
@@ -183,10 +133,63 @@ def getlistJsonProceso(procesos):
     return listJsonProcesos
 
 
-def actualizarJSON(jsonData,listas):
+def actualizarJSONdocumentos(jsonData,listas):
     for d in jsonData['documentos']:
-        if len(d) > 1:
-            for l in listas:
+        for l in listas:
+            if len(d) > 1:
                 if d['campo'] == l[0]:
                     d['validacion'] = boolean(l[1])
     return jsonData
+
+def actualizarJSONcontrato(jsonData,listas):
+    for l in listas:
+        if len(l) > 1:
+            jsonData['contrato']['validacion'] = boolean(l[1])
+    return jsonData
+
+
+def crearJsonDocumentos(listas,jsonData):
+    #print(jsonData)
+    data = []
+    for l in listas:
+        if len(l) > 1:
+            json = {
+                "campo": l[0],
+                "rutaS3": "https://"+l[1],
+                "validacion": ""
+            }
+            data.append(json)
+    
+    jsonData['documentos'] = data
+
+    #print(jsonData)
+    return jsonData
+
+def crearJsonContrato(listas,jsonData):
+    now = datetime.now()
+    #print(jsonData)
+    for l in listas:
+        if len(l) > 1:
+            json = {
+                "campo": l[0],
+                "ruta": "https://"+l[1],
+                "fechaHoraElaboracion": ""+now.strftime('%Y-%m-%d %H:%M:%S'),
+                "validacion": ""
+            }
+    
+    jsonData['contrato'] = json
+
+    #print(jsonData)
+    return jsonData
+
+def fechahoraActividad(procesos):
+    
+    for p in procesos:
+        baseUrl = "http://"+host+"/engine-rest/task?processInstanceId="+str(p['id'])+""
+        respuesta = requests.get(baseUrl)
+        como_json = respuesta.json()
+        #print(como_json)
+        for x in como_json:
+            p['fechaHora'] = x['created']
+    
+    return procesos

@@ -57,11 +57,12 @@ def consultaJsonDocumentos(idproceso):
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
+
 @app.route("/cargarDocumentos", methods=['POST'])
 def cargarDocumentos():
     listas = request.form.listvalues()
-    data = controlador.getVariableJson(request.form['idproceso'])
-    dataJson = controlador.datosProcesos(listas,data)
+    data = controlador.getJsonProceso(request.form['idproceso'])
+    dataJson = controlador.crearJsonDocumentos(listas,data)
     idtask = controlador.gettask(request.form['idproceso'])
     controlador.CompleteTask(idtask,dataJson)
     return redirect(url_for('listaInstancias'))
@@ -70,19 +71,30 @@ def cargarDocumentos():
 def validarDocumentos():
     listas = request.form.listvalues()
     jsonData = controlador.getJsonProceso(request.form['idproceso'])
-    jsonActualizado = controlador.actualizarJSON(jsonData, listas)
+    jsonActualizado = controlador.actualizarJSONdocumentos(jsonData, listas)
     idtask = controlador.gettask(request.form['idproceso'])
     controlador.CompleteTask(idtask,jsonActualizado)
     return redirect(url_for('listaInstancias'))
-    #print(listas)
-    #print("#############################")
-    #print(jsonActualizado)
-    #return "Exitoso"
+    
 
-#@app.route("/RevisiondeDocumentacion/<idproceso>")
-#def RevisiondeDocumentacion(idproceso):
-#    return render_template('RevisiondeDocumentacion.html')
+@app.route("/cargarContrato", methods=['POST'])
+def cargarContrato():
+    datosForm = request.form.listvalues()
+    print(datosForm)
+    data = controlador.getJsonProceso(request.form['idproceso'])
+    jsonContrato = controlador.crearJsonContrato(datosForm,data)
+    idtask = controlador.gettask(request.form['idproceso'])
+    controlador.CompleteTask(idtask,jsonContrato)
+    return redirect(url_for('listaInstancias'))
 
+@app.route("/validarContrato", methods=['POST'])
+def validarContrato():
+    listas = request.form.listvalues()
+    jsonData = controlador.getJsonProceso(request.form['idproceso'])
+    jsonActualizado = controlador.actualizarJSONcontrato(jsonData, listas)
+    idtask = controlador.gettask(request.form['idproceso'])
+    controlador.CompleteTask(idtask,jsonActualizado)
+    return redirect(url_for('listaInstancias'))
 
 
 
