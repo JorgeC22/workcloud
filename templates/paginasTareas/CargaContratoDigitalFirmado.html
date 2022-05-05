@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Carga Contrato Digital Firmado</h1>
+    <form action="{{ url_for('cargarContrato', idproceso=idproceso) }}" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="">Contrato</label>
+            <input type="hidden" name="Contrato" value="Contrato">
+            <input type="file" name="Contrato">
+        </div>
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
+</body>
+</html>

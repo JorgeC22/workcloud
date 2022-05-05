@@ -7,8 +7,8 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Validar Contrato</h1>
-    <form action="{{ url_for('validarContrato', idproceso=idproceso) }}" method="post">
+    <h1>Revision Documentacion</h1>
+    <form action="{{ url_for('validarDocumentos', idproceso=idproceso) }}" method="post">
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -26,6 +26,6 @@
 
     <a href="{{ url_for('listaInstancias') }}">Regresar</a>
 
-    <script type='text/javascript' src="{{ url_for('static', filename='js/validarContratoTable.js') }}"></script>
+    <script type='text/javascript' src="{{ url_for('static', filename='js/tablaDocumentos.js') }}"></script>
 </body>
 </html>

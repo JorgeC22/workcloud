@@ -2,8 +2,8 @@ window.onload=function(){
     usuarios();
     function usuarios(){
         var URLactual = document.URL;
-        var URLnew = URLactual.replace("ValidarContrato", "consultaJsonDocumentos");
-        var URLbaseFile = URLactual.replace("ValidarContrato", "archivo");
+        var URLnew = URLactual.replace("RevisionContratoDigital", "consultaJsonDocumentos");
+        var URLbaseFile = URLactual.replace("RevisionContratoDigital", "archivo");
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);

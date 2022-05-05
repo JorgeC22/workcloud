@@ -1,4 +1,6 @@
+from distutils.archive_util import make_archive
 from ntpath import join
+import os
 from this import d
 from urllib import response
 import uuid
@@ -6,6 +8,8 @@ from xmlrpc.client import boolean
 import requests
 import json
 from datetime import datetime
+import base64
+from flask import *
 #ec2-54-188-33-247.us-west-2.compute.amazonaws.com:8080/
 
 host = "localhost:8080"
@@ -100,6 +104,31 @@ def CompleteTask(idtask,dataJson):
     print("La respuesta del servidor es: ")
     print(f"Tarea  Completado: {idtask}")
 
+def filesCompleteTask(idtask,dataJson,jsonFiles):
+    
+    if "id" in dataJson:
+        dataJson.pop('id')
+
+    print(dataJson)
+    baseUrl = "http://"+host+"/engine-rest/task/"+str(idtask)+"/complete"
+    jsonD = json.dumps(dataJson)
+    #jsonD = jsonD.replace("\"", "\\\"")
+    print(jsonD)
+    data = {
+        "variables": {
+            "datosProceso": {
+                "value": ""+jsonD,
+                "type": "String"
+            }
+        }
+    }
+
+
+    data['variables'].update(jsonFiles)
+    respuesta = requests.post(baseUrl, json=data)
+    print("La respuesta del servidor es: ")
+    print(f"Tarea  Completado: {idtask}")
+
 
 
 ############################################################################################
@@ -136,9 +165,8 @@ def getlistJsonProceso(procesos):
 def actualizarJSONdocumentos(jsonData,listas):
     for d in jsonData['documentos']:
         for l in listas:
-            if len(d) > 1:
-                if d['campo'] == l[0]:
-                    d['validacion'] = boolean(l[1])
+            if d['nombreDoc'] == l[0]:
+                d['validacion'] = boolean(l[1])
     return jsonData
 
 def actualizarJSONcontrato(jsonData,listas):
@@ -152,34 +180,57 @@ def crearJsonDocumentos(listas,jsonData):
     #print(jsonData)
     data = []
     for l in listas:
-        if len(l) > 1:
-            json = {
-                "campo": l[0],
-                "rutaS3": "https://"+l[1],
-                "validacion": ""
-            }
-            data.append(json)
+        json = {
+            "nombreDoc": l[0],
+            "validacion": ""
+        }
+        data.append(json)
     
     jsonData['documentos'] = data
 
     #print(jsonData)
     return jsonData
 
+def crearJsonFile(listValues, Files):
+    jsons = {}
+    for l in listValues:
+        archivo = Files.getlist(l[0])
+        if archivo[0].filename:
+            archivo[0].save("./archivos/"+archivo[0].filename)
+            with open("./archivos/"+archivo[0].filename, "rb") as arc:
+                code = base64.b64encode(arc.read())
+
+            data = {
+                l[0]: {
+                    "type": "File",
+                    "value": code.decode(),
+                    "valueInfo": {
+                        "filename": archivo[0].filename,
+                        "mimeType": archivo[0].content_type
+                    }
+                }
+            }
+
+            if jsons:
+                jsons.update(data)
+            else:
+                jsons = data
+
+            os.remove("./archivos/"+archivo[0].filename)
+
+    return jsons
+
+
 def crearJsonContrato(listas,jsonData):
     now = datetime.now()
-    #print(jsonData)
     for l in listas:
-        if len(l) > 1:
-            json = {
-                "campo": l[0],
-                "ruta": "https://"+l[1],
-                "fechaHoraElaboracion": ""+now.strftime('%Y-%m-%d %H:%M:%S'),
-                "validacion": ""
-            }
+        json = {
+            "nombreDoc": l[0],
+            "fechaHoraElaboracion": ""+now.strftime('%Y-%m-%d %H:%M:%S'),
+            "validacion": ""
+        }
     
     jsonData['contrato'] = json
-
-    #print(jsonData)
     return jsonData
 
 def fechahoraActividad(procesos):
@@ -193,3 +244,46 @@ def fechahoraActividad(procesos):
             p['fechaHora'] = x['created']
     
     return procesos
+
+def cargarArchivo(code):
+    baseUrl = "http://"+host+"/engine-rest/process-definition/key/Process_0w2618a/start"
+    data = {
+        "variables": {
+            "archivo": {
+                "type": "File",
+                "value": code,
+                "valueInfo": {
+                    "filename": "hola3.pdf",
+                    "mimeType": "application/pdf",
+                    "encoding": "UTF-8"
+                }
+            }
+        } 
+    }
+
+    respuesta = requests.post(baseUrl, json=data)
+    instanciaProceso = respuesta.json()
+    print(instanciaProceso)
+
+def file():
+    baseUrl = "http://"+host+"/engine-rest/process-instance/031a9207-cbb3-11ec-ab2c-b05adacf4ec1/variables/file/data"
+    respuesta = requests.get(baseUrl)
+    #instanciaProceso = respuesta.json()
+    print(respuesta.reason)
+    print("#######################################")
+    #print(respuesta.content)
+    #encabezado = respuesta.headers
+    #body = respuesta.content
+
+    return respuesta
+
+def getObjectResponseFile(idproceso,variable):
+    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idproceso)+"/variables/"+str(variable)+"/data"
+    respuesta = requests.get(baseUrl)
+    return respuesta
+
+def infoFile(idproceso,variable):
+    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idproceso)+"/variables/"+str(variable)+""
+    respuesta = requests.get(baseUrl)
+    dataFile = respuesta.json()
+    return dataFile
