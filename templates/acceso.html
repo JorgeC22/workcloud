@@ -1,0 +1,28 @@
+{% extends "vistaBaseSeccionAcceso.html" %}
+{% block content %}
+<div class="container">
+    <div class="contenedorPosicion">
+        <div class="contenedorElementos">
+            <h1 class="mb-5" style="font-size: 60px;">Bienvenido</h1>
+            <p class="mb-5">Si anteriormente has iniciado un proceso de registro ingresa con tu correo asociado al mismo, si es tu primera vez registra tu razon social para comenzar el proceso de registro.</p>
+
+            <a class="btn btn-success" href="{{ url_for('validarCorreo', distribuidor=distribuidor) }}">Ingresar con mi Correo</a>
+            <a class="btn btn-secondary" href="{{ url_for('capturarRFC', distribuidor=distribuidor) }}">Registrar nueva Empresa</a>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .contenedorPosicion{
+        display: flex;
+        height: 500px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .contenedorElementos{
+        text-align: center;
+    }
+</style>
+{% endblock %}

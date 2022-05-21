@@ -1,0 +1,55 @@
+{% extends "vistaBaseSeccionAcceso.html" %}
+{% block content %}
+<div class="container">
+    <div class="contenedorZonaElementos">
+        <div class="contenedorInputs">
+            <form action="{{ url_for('cargarDatosEmpresa',distribuidor=distribuidor) }}" method="post">
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label">RFC</label>
+                    <input type="text" name="rfcProspecto" class="form-control" id="exampleFormControlInput1" value="{{ session.rfcProspecto }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label">Razon Social</label>
+                    <input type="text" name="razonSocial" class="form-control" id="exampleFormControlInput1">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label">Correo</label>
+                    <input type="text" name="correoProspecto" class="form-control" id="exampleFormControlInput1">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <p class="text-center text-danger">{{ message }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="botonesDireccionamiento">
+                    <button class="btn btn-success" type="submit">Capturar Datos</button>
+                    <a class="btn btn-secondary" href="{{ url_for('capturarRFC',distribuidor=distribuidor) }}">Regresar</a>
+                </div>
+            </form>
+        </div> 
+    </div>   
+</div>
+
+<style>
+    .contenedorZonaElementos{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 500px;
+    }
+    .contenedorInputs{
+        width: 400px;
+    }
+    .contenedorInputs form label{
+        font-size: 20px;
+    }
+
+    .contenedorInputs .botonesDireccionamiento{
+        width: 100%;
+        text-align: center;
+    }
+</style>
+{% endblock %}

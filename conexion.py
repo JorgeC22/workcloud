@@ -1,8 +1,8 @@
-#import mariadb
+import mariadb
 
-#def conect():
-#    return mariadb.connect(host='localhost',
-#                            user='root',
-#                            password='12345',
-#                            db='usuarios',
-#                            port=3307,)
+def DB():
+    return mariadb.connect(host='localhost',
+                            user='root',
+                            password='12345',
+                            db='workflow',
+                            port=3307)

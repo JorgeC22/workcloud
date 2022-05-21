@@ -1,0 +1,27 @@
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+<h1 class="mb-5">Impresion Firma de Contrato Fisico por Duplicado</h1>
+
+<form id="base_descarga" action="{{ url_for('terminarDescarga', idproceso=idproceso, idtask=idtask) }}" method="post">
+    <div class="row mb-5">
+        <div class="col-sm-12 mb-3">
+            <label for="formFile" class="form-label">Razon Social</label>
+            <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+          </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">RFC</label>
+            <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+        </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">Distribuidor</label>
+            <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+        </div>
+    </div>
+    <a href="" id="btnDescargar" download class="btn btn-success"></a>
+    <button class="btn btn-primary" type="submit">Cargar Contrato Fisico Firmado</button>
+    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+</form>
+
+
+<script type='text/javascript' src="{{ url_for('static', filename='js/descargaContratoOriginal.js') }}"></script>
+{% endblock %}

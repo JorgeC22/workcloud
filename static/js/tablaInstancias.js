@@ -13,19 +13,18 @@ window.onload=function(){
                 var json = JSON.parse(this.responseText);
                 var tablebody = document.getElementById('bodytable');
                 for (var i = 0; i < json.length; i++) {
-                    console.log(json[i]);
-                    var pagina = json[i].tarea;
+                    var pagina = json[i].tarea.nombreActividad;
                     pagina = camelCase(pagina);
                     pagina = removeAccents(pagina)
                     
                     var renglon = document.createElement("tr");
 
                     var idProceso = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].id);
+                    var textoCampo = document.createTextNode(json[i].cliente.razonSocial);
                     idProceso.appendChild(textoCampo);
 
                     var tarea = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].tarea);
+                    var textoCampo = document.createTextNode(json[i].tarea.nombreActividad);
                     tarea.appendChild(textoCampo);
 
                     var fechahora = document.createElement("td");
@@ -33,7 +32,7 @@ window.onload=function(){
                     fechahora.appendChild(textoCampo);
 
                     var btn = document.createElement("td");
-                    var btnInstancia = boton("Abrir Instancia",URLbase+pagina+"/"+json[i].id,"btn btn-success","abrirInstancia");
+                    var btnInstancia = boton("Ver Tarea",URLbase+pagina+"/"+json[i].id+"/"+json[i].idtask,"btn btn-light","abrirInstancia");
                     btn.appendChild(btnInstancia);
 
                     renglon.appendChild(idProceso);

@@ -1,14 +1,15 @@
 window.onload=function(){
     var URLactual = document.URL;
-        var URLobtenerJsonDocumentos = URLactual.replace("DescargaContratoDigital", "consultaJsonDocumentos");
-        var URLobtenerJsonNotifiacionCorreo = URLactual.replace("DescargaContratoDigital", "extraerNotificacionEmail");
-        var URLbaseFile = URLactual.replace("DescargaContratoDigital", "archivo");
+    var URLobtenerJsoDocumentos = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "consultaJsonDocumentos");
+    var URLobtenerJsonNotifiacionCorreo = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "extraerNotificacionEmail");
+    var URLbaseFile = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "archivo");
 
     usuarios();
     obtenerMesajeNotificacionCorreo();
     function usuarios(){
+
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',URLobtenerJsonDocumentos, true);
+        xhttp.open('GET',URLobtenerJsoDocumentos, true);
         xhttp.send();
         xhttp.onreadystatechange = function(){
             if(this.readyState==4 && this.status==200){
@@ -28,6 +29,8 @@ window.onload=function(){
 
                 var btnDescarga = document.getElementById('btnDescargar');
                 btnDescarga.setAttribute("href", URLbaseFile+"/"+nombreDoc);
+                var textofila = document.createTextNode("Descargar Contrato");
+                btnDescarga.appendChild(textofila);
             }
         }
     }

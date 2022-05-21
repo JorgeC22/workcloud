@@ -1,21 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <form action="{{ url_for('cargarContrato', idproceso=idproceso) }}" method="post" enctype="multipart/form-data">
-        <div>
-            <label for="">Contrato</label>
-            <input type="hidden" name="Contrato" value="Contrato">
-            <input type="file" name="Contrato">
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+    <form action="{{ url_for('cargarContrato', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
+        <legend class="mb-5">Elaboración de Contrato</legend>
+        <div class="row mb-3">
+            <div class="col-sm-12 mb-3">
+                <label for="formFile" class="form-label">Razon Social</label>
+                <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+              </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">RFC</label>
+                <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+            </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">Distribuidor</label>
+                <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+            </div>
         </div>
-        <button type="submit">Enviar</button>
+        <div class="mb-5">
+            <label for="formFile" class="form-label">Contrato</label>
+            <input type="hidden" name="Contrato" value="Contrato">
+            <input class="form-control" type="file" id="formFile" name="Contrato">
+        </div>
+        <button type="submit" class="btn btn-success">Cargar Contrato</button>
+        <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
     </form>
 
-    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
-</body>
-</html>
+    <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosElaborarContrato.js') }}"></script>
+{% endblock %}

@@ -1,31 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Revision Documentacion</h1>
-    <form action="{{ url_for('validarDocumentos', idproceso=idproceso) }}" method="post">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Documento</th>
-                    <th>Link</th>
-                    <th>Aceptar</th>
-                    <th>Rechazar</th>
-                </tr>
-            </thead>
-            <tbody id="bodytable">
-            </tbody>
-        </table>
-        <button type="submit">Enviar</button>
-    </form>
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+<h1 class="mb-5">Revision Documentacion</h1>
 
-    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
+<form action="{{ url_for('validarDocumentos', idproceso=idproceso, idtask=idtask) }}" method="post">
+    <div class="row mb-5">
+        <div class="col-sm-12 mb-3">
+            <label for="formFile" class="form-label">Razon Social</label>
+            <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+          </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">RFC</label>
+            <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+        </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">Distribuidor</label>
+            <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+        </div>
+    </div>
+    <table class="table mb-5">
+        <thead class="table-dark">
+            <tr>
+                <th>Documento</th>
+                <th>Link</th>
+                <th>Aceptar</th>
+                <th>Rechazar</th>
+            </tr>
+        </thead>
+        <tbody id="bodytable">
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Validar Documentos</button>
+    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+</form>
 
-    <script type='text/javascript' src="{{ url_for('static', filename='js/tablaDocumentos.js') }}"></script>
-</body>
-</html>
+
+<script type='text/javascript' src="{{ url_for('static', filename='js/tablaDocumentos.js') }}"></script>
+{% endblock %}

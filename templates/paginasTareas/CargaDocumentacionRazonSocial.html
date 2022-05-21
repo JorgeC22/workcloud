@@ -1,32 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Carga Documentacion</h1>
-    <form action="{{ url_for('cargarDocumentos', idproceso=idproceso) }}" method="post" enctype="multipart/form-data">
-        <div>
-            <label for="">Acta Constitutiva</label>
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+    <form action="{{ url_for('cargarDocumentos', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
+        <legend class="mb-5">Carga Documentación de Razón Social</legend>
+        <div class="row mb-3">
+            <div class="col-sm-12 mb-3">
+                <label for="formFile" class="form-label">Razon Social</label>
+                <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+              </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">RFC</label>
+                <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+            </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">Distribuidor</label>
+                <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Acta Constitutiva</label>
             <input type="hidden" name="Acta Constitutiva" value="Acta Constitutiva">
-            <input type="file" name="Acta Constitutiva" id="Acta Constitutiva">
+            <input class="form-control" type="file" id="formFile" name="Acta Constitutiva">
         </div>
-        <div>
-            <label for="">Carta Legal</label>
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Carta Legal</label>
             <input type="hidden" name="Carta Legal" value="Carta Legal">
-            <input type="file" name="Carta Legal" id="Carta Legal">
+            <input class="form-control" type="file" id="formFile" name="Carta Legal">
         </div>
-        <div>
-            <label for="">Comprobante</label>
+        <div class="mb-5">
+            <label for="formFile" class="form-label">Comprobante</label>
             <input type="hidden" name="Comprobante" value="Comprobante">
-            <input type="file" name="Comprobante" id="Comprobante">
+            <input class="form-control" type="file" id="formFile" name="Comprobante">
         </div>
-        <button type="submit">Enviar</button>
+        <button type="submit" class="btn btn-success">Cargar Documentos</button>
+        <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
     </form>
 
-    <a href="{{ url_for('listaInstancias') }}">Regresar</a>
-</body>
-</html>
+    <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProceso.js') }}"></script>
+{% endblock %}

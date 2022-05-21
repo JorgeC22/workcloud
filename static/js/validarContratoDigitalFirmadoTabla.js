@@ -3,7 +3,9 @@ window.onload=function(){
     function usuarios(){
         var URLactual = document.URL;
         var URLnew = URLactual.replace("RevisionContratoDigital", "consultaJsonDocumentos");
-        var URLbaseFile = URLactual.replace("RevisionContratoDigital", "archivo");
+        //var URLbaseFile = URLactual.replace("RevisionContratoDigital", "archivo");
+        var dominio = document.domain;
+
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);
@@ -11,6 +13,16 @@ window.onload=function(){
         xhttp.onreadystatechange = function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
+                var URLbaseFile = "http://"+dominio+":5000/archivo/"+json.id;
+
+                var inputRazonSocial = document.getElementById('razonSocial');
+                inputRazonSocial.setAttribute("value", json.cliente.razonSocial);
+
+                var inputRfc = document.getElementById('rfc');
+                inputRfc.setAttribute("value", json.cliente.rfc);
+
+                var inputDistribuidor = document.getElementById('distribuidor');
+                inputDistribuidor.setAttribute("value", json.cliente.distribuidor);
 
                 nombreDoc = json.contrato.nombreDoc
                 var tbody = document.getElementById('bodytable');
@@ -37,6 +49,8 @@ window.onload=function(){
 
                 var btnAceptar = document.createElement("td");
                 var inputAceptar = document.createElement("input");
+                inputAceptar.setAttribute('class', 'form-check-input');
+                inputAceptar.setAttribute('id', 'flexRadioDefault1');
                 inputAceptar.setAttribute('type', 'radio');
                 inputAceptar.setAttribute('name', nombreDoc);
                 inputAceptar.setAttribute('value', "true");
@@ -44,6 +58,8 @@ window.onload=function(){
 
                 var btnRechazar = document.createElement("td");
                 var inputRechazar = document.createElement("input");
+                inputRechazar.setAttribute('class', 'form-check-input');
+                inputRechazar.setAttribute('id', 'flexRadioDefault1');
                 inputRechazar.setAttribute('type', 'radio');
                 inputRechazar.setAttribute('name', nombreDoc);
                 inputRechazar.setAttribute('value', "");

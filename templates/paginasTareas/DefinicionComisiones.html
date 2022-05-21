@@ -1,12 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+<form action="{{ url_for('cargaComisiones', idproceso=idproceso, idtask=idtask) }}" method="post">
+    <legend class="mb-5">Definicion de Comisiones</legend>
+    <div class="row mb-5">
+        <div class="col-sm-12 mb-3">
+            <label for="formFile" class="form-label">Razon Social</label>
+            <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+          </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">RFC</label>
+            <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+        </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">Distribuidor</label>
+            <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+        </div>
+    </div>
+    <h5 class="mb-3">Operacion Cuenta Eje</h5>
+    <div class="row mb-5">
+        <div class="mb-3 row col-sm-6">
+            <div class="mb-3 col-sm-12">
+                <label for="exampleFormControlInput1" class="form-label">Cash In</label>
+                <select name="inTipo" id="cashIn" class="form-select" aria-label="Default select example" oninput="getValorSelectIn(this);">
+                    <option value="Porcentaje">Porcentaje</option>
+                    <option value="Fijo">Fijo</option>
+                </select>
+            </div>
+            <label for="inputPassword" class="col-sm-2 col-form-label">Cantidad</label>
+            <div class="col-sm-10">
+              <input name="inCantidad" type="number" id="inputCashInCantidad" class="form-control" id="inputPassword">
+            </div>
+        </div>
+        <div class="mb-3 row col-sm-6">
+            <div class="mb-3 col-sm-12">
+                <label for="exampleFormControlInput1" class="form-label">Cash Out</label>
+                <select name="outTipo" id="cashOut" class="form-select" aria-label="Default select example" oninput="getValorSelectOut(this);">
+                    <option value="Porcentaje">Porcentaje</option>
+                    <option value="Fijo">Fijo</option>
+                </select>
+            </div>
+            <label for="inputPassword" class="col-sm-2 col-form-label">Cantidad</label>
+            <div class="col-sm-10">
+              <input name="outCantidad" type="number" id="inputCashOutCantidad" class="form-control" id="inputPassword">
+              <!--onkeydown="if(this.value.length == 4) return false"-->
+            </div>
+        </div>
+    </div>
+
+    <h5 class="mb-3">Operacion por Medios de Pagos Adicionales</h5>
+    <div class="row mb-5">
+        <div class="mb-3 col-sm-4">
+            <label for="inputPassword" class="col-sm-12 col-form-label">ATM</label>
+            <div class="col-sm-10">
+              <input name="atm" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)">
+            </div>
+        </div>
+        <div class="mb-3 col-sm-4">
+            <label for="inputPassword" class="col-sm-12 col-form-label">Tarjta Visa</label>
+            <div class="col-sm-10">
+              <input name="tarjetaVisa" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)">
+            </div>
+        </div>
+        <div class="mb-3 col-sm-4">
+            <label for="inputPassword" class="col-sm-12 col-form-label">Envio Recepción de Divisas</label>
+            <div class="col-sm-10">
+              <input name="ERD" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this);">
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-success">Cargar Comisiones</button>
+    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+</form>
+
+<script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosDefinirComision.js') }}"></script>
+<script type='text/javascript' src="{{ url_for('static', filename='js/opcionesComision.js') }}"></script>
+{% endblock %}

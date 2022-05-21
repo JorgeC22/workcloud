@@ -1,0 +1,30 @@
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+<form action="{{ url_for('cargarFechaRealizado', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
+    <legend class="mb-5">Acuse de Recibo de Contrato Original</legend>
+    <div class="row mb-5">
+        <div class="col-sm-12 mb-3">
+            <label for="formFile" class="form-label">Razon Social</label>
+            <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+          </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">RFC</label>
+            <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+        </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">Distribuidor</label>
+            <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+        </div>
+    </div>
+    <div class="mb-5">
+        <label for="exampleFormControlInput1" class="form-label">Fecha</label>
+        <input type="date" name="fechaAcuseReciboContratoOriginal" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+        <p style="font-size: 11px;">Indique la fecha de cuando recibio el contrato Original.</p>
+        <input type="hidden" name="señalProcesoFinaliza" value="final">
+    </div>
+    <button type="submit" class="btn btn-success">Cargar Fecha</button>
+    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+</form>
+
+<script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosAcuseReciboContratoOriginal.js') }}"></script>
+{% endblock %}
