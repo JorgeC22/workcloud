@@ -1,2 +1,6 @@
-flask==2.0.2
-camunda-external-task-client-python3==4.0.0
+flask
+flask-login
+Werkzeug
+mariadb
+requests
+pytz

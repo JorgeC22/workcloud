@@ -1,11 +1,17 @@
 window.onload=function(){
     var URLactual = document.URL;
     var URLobtenerJsoDocumentos = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "consultaJsonDocumentos");
-    var URLobtenerJsonNotifiacionCorreo = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "extraerNotificacionEmail");
-    var URLbaseFile = URLactual.replace("ImpresionFirmaContratoFisicoDuplicado", "archivo");
+    var dominio = document.domain;
+
+    localStorage.setItem('descarga', 0);
+    var variableDescarga = localStorage.getItem('descarga');
+
+    if (variableDescarga == 0){
+        var btnSiguienteTarea = document.getElementById('btnSiguienteTarea');
+        btnSiguienteTarea.setAttribute("disabled", "");
+    }
 
     usuarios();
-    obtenerMesajeNotificacionCorreo();
     function usuarios(){
 
         var xhttp = new XMLHttpRequest();
@@ -14,6 +20,7 @@ window.onload=function(){
         xhttp.onreadystatechange = function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
+                var URLbaseFile = "https://"+dominio+"/archivo/"+json.id;
 
                 var inputRazonSocial = document.getElementById('razonSocial');
                 inputRazonSocial.setAttribute("value", json.cliente.razonSocial);
@@ -28,26 +35,24 @@ window.onload=function(){
                 nombreDoc = json.contrato.nombreDoc;
 
                 var btnDescarga = document.getElementById('btnDescargar');
-                btnDescarga.setAttribute("href", URLbaseFile+"/"+nombreDoc);
-                var textofila = document.createTextNode("Descargar Contrato");
-                btnDescarga.appendChild(textofila);
+                btnDescarga.setAttribute("href", URLbaseFile+"/"+json.contrato.nombreDoc);
             }
         }
     }
+}
 
-    function obtenerMesajeNotificacionCorreo(){
+var btnDescarga = document.getElementById('btnDescargar');
 
-        var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',URLobtenerJsonNotifiacionCorreo, true);
-        xhttp.send();
-        xhttp.onreadystatechange = function(){
-            if(this.readyState==4 && this.status==200){
-                var json = JSON.parse(this.responseText);
+btnDescarga.addEventListener("click", () => {
+    localStorage.setItem('descarga', 1);
 
-                var mensajeEmail = document.getElementById("msgEnvioEmail");
-                var textoCampo = document.createTextNode(json.notificacion);
-                mensajeEmail.appendChild(textoCampo);
-            }
-        }
+    var variableDescarga = localStorage.getItem('descarga');
+    if (variableDescarga == 1){
+        var btnSiguienteTarea = document.getElementById('btnSiguienteTarea');
+        btnSiguienteTarea.removeAttribute("disabled");
     }
+})
+
+window.close=function(){
+    localStorage.removeItem("descarga");
 }

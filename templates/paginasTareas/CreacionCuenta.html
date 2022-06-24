@@ -1,7 +1,7 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
 <form action="{{ url_for('cargarDatosCuenta', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
-    <legend class="mb-5">Creacion de Cuenta</legend>
+    <legend class="mb-5">Creacion de cuenta</legend>
     <div class="row mb-3">
         <div class="col-sm-12 mb-3">
             <label for="formFile" class="form-label">Razon Social</label>
@@ -18,18 +18,18 @@
     </div>
     <div class="mb-3">
         <label for="exampleFormControlInput1" class="form-label">ID de cuenta</label>
-        <input type="text" name="idCuenta" class="form-control" id="exampleFormControlInput1">
+        <input type="text" name="idCuenta" class="form-control" id="exampleFormControlInput1" required>
     </div>
     <div class="mb-3">
         <label for="exampleFormControlInput1" class="form-label">CLABE</label>
-        <input type="text" name="CLABE" class="form-control" id="exampleFormControlInput1">
+        <input type="text" name="CLABE" class="form-control" id="exampleFormControlInput1" required>
     </div>
     <div class="mb-5">
         <label for="exampleFormControlInput1" class="form-label">Numero de Cuenta Alquimiapay</label>
-        <input type="text" name="numeroCuentaAlquimiapay" class="form-control" id="exampleFormControlInput1">
+        <input type="text" name="numeroCuentaAlquimiapay" class="form-control" id="exampleFormControlInput1" required>
     </div>
-    <button type="submit" class="btn btn-success">Cargar Datos</button>
-    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+    <button type="submit" class="btn btn-success">Continuar proceso</button>
+    <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>
 
 <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosCrearUsuario.js') }}"></script>

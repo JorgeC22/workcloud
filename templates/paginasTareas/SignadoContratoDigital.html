@@ -1,7 +1,7 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
     <form action="{{ url_for('cargarContrato', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
-        <legend class="mb-5">Singado de Contrato Digital</legend>
+        <legend class="mb-5">Singado de contrato digital</legend>
         <div class="row mb-3">
             <div class="col-sm-12 mb-3">
                 <label for="formFile" class="form-label">Razon Social</label>
@@ -19,10 +19,11 @@
         <div class="mb-5">
             <label for="formFile" class="form-label">Contrato</label>
             <input type="hidden" name="Contrato" value="Contrato">
-            <input class="form-control" type="file" id="formFile" name="Contrato">
+            <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="formFile" name="Contrato" required>
+            <p id="Contrato" class="parrafoInfo"></p>
         </div>
-        <button type="submit" class="btn btn-success">Cargar Contrato</button>
-        <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+        <button type="submit" class="btn btn-success">Continuar proceso</button>
+        <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
     </form>
 
     <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosSignarContrato.js') }}"></script>

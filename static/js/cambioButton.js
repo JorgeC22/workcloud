@@ -3,7 +3,6 @@ window.onload=function(){
     function usuarios(){
         var URLactual = document.URL;
         var URLnew = URLactual.replace("pagina2", "consultaVariables");
-        console.log(URLnew);
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);
@@ -23,7 +22,7 @@ window.onload=function(){
 
                 //var inputTarea = document.getElementById('actividad');
 
-                console.log(json.tarea)
+                
                 if (json.tarea == "Carga documentación de razón social"){
                     
                     //var varEjemplo = boton(texto,formaction,name,value,class,id);

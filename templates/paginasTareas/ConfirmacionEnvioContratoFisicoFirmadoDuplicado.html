@@ -1,8 +1,8 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
-<form action="{{ url_for('cargarContrato', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
-    <legend class="mb-5">Confirmacion Envio de Contrato Fisico Firmado por Duplicado</legend>
-    <div class="row mb-3">
+<form action="{{ url_for('cargarFechaEnvioContratoFisico', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
+    <legend class="mb-5">Confirmacion envio de contrato fisico firmado por duplicado</legend>
+    <div class="row mb-5">
         <div class="col-sm-12 mb-3">
             <label for="formFile" class="form-label">Razon Social</label>
             <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
@@ -17,12 +17,12 @@
         </div>
     </div>
     <div class="mb-5">
-        <label for="formFile" class="form-label">Contrato Fisico</label>
-        <input type="hidden" name="Contrato" value="Contrato">
-        <input class="form-control" type="file" id="formFile" name="Contrato">
+        <label for="exampleFormControlInput1" class="form-label">Fecha de envio de contrato fisico</label>
+        <input type="date" name="fechaEnvioContratoFisicoDuplicado" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com" required>
+        <p style="font-size: 11px;">Indique la fecha de cuando hizo el envio del contrato fisico firmado.</p>
     </div>
-    <button type="submit" class="btn btn-success">Cargar Contrato</button>
-    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+    <button type="submit" class="btn btn-success">Continuar proceso</button>
+    <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>
 
 <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosCargaContratoFisico.js') }}"></script>

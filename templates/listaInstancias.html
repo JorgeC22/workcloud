@@ -6,7 +6,9 @@
     <thead class="table-dark">
         <tr>
             <th>Razon Social</th>
+            <th>RFC</th>
             <th>Tarea</th>
+            <th>Responsable</th>
             <th>Fecha-Hora</th>
             <th></th>
         </tr>
@@ -17,7 +19,7 @@
 
 {% for s in session.grupos %}
     {% if s == "Prospectos" %}
-        <a class="btn btn-success" href="{{ url_for('registro') }}">Registrar Nueva Razon Social</a>
+        <a rel="nofollow" class="btn btn-success" href="{{ url_for('registro') }}">Registrar Nueva Razon Social</a>
     {% endif %}
 {% endfor %}
 

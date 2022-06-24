@@ -4,7 +4,6 @@ window.onload=function(){
         var URLactual = document.URL;
         var URLnew = URLactual.replace("DescargaContratoDigital", "extraerNotificacionEmail");
         var dominio = document.domain;
-        console.log(location.search);
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);

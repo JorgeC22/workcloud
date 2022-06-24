@@ -1,7 +1,7 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
 <form action="{{ url_for('cargaComisiones', idproceso=idproceso, idtask=idtask) }}" method="post">
-    <legend class="mb-5">Definicion de Comisiones</legend>
+    <legend class="mb-5">Definicion de comisiones</legend>
     <div class="row mb-5">
         <div class="col-sm-12 mb-3">
             <label for="formFile" class="form-label">Razon Social</label>
@@ -28,7 +28,7 @@
             </div>
             <label for="inputPassword" class="col-sm-2 col-form-label">Cantidad</label>
             <div class="col-sm-10">
-              <input name="inCantidad" type="number" id="inputCashInCantidad" class="form-control" id="inputPassword">
+              <input name="inCantidad" step="0.01" type="number" id="inputCashInCantidad" class="form-control" id="inputPassword" required>
             </div>
         </div>
         <div class="mb-3 row col-sm-6">
@@ -41,7 +41,7 @@
             </div>
             <label for="inputPassword" class="col-sm-2 col-form-label">Cantidad</label>
             <div class="col-sm-10">
-              <input name="outCantidad" type="number" id="inputCashOutCantidad" class="form-control" id="inputPassword">
+              <input name="outCantidad" step="0.01" type="number" id="inputCashOutCantidad" class="form-control" id="inputPassword" required>
               <!--onkeydown="if(this.value.length == 4) return false"-->
             </div>
         </div>
@@ -52,24 +52,24 @@
         <div class="mb-3 col-sm-4">
             <label for="inputPassword" class="col-sm-12 col-form-label">ATM</label>
             <div class="col-sm-10">
-              <input name="atm" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)">
+              <input name="atm" type="number" step="0.01" id="inputCashInCantidad" placeholder="0.00%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)" required>
             </div>
         </div>
         <div class="mb-3 col-sm-4">
             <label for="inputPassword" class="col-sm-12 col-form-label">Tarjta Visa</label>
             <div class="col-sm-10">
-              <input name="tarjetaVisa" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)">
+              <input name="tarjetaVisa" step="0.01" type="number" id="inputCashInCantidad" placeholder="0.00%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this)" required>
             </div>
         </div>
         <div class="mb-3 col-sm-4">
             <label for="inputPassword" class="col-sm-12 col-form-label">Envio Recepción de Divisas</label>
             <div class="col-sm-10">
-              <input name="ERD" type="number" id="inputCashInCantidad" placeholder="%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this);">
+              <input name="ERD" type="number" step="0.01" id="inputCashInCantidad" placeholder="0.00%" class="form-control" id="inputPassword" oninput="caracteristicasCampoPorcentual(this);" required>
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-success">Cargar Comisiones</button>
-    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+    <button type="submit" class="btn btn-success">Continuar proceso</button>
+    <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>
 
 <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesosDefinirComision.js') }}"></script>

@@ -1,7 +1,7 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
     <form id="formCargaDocumentosProspecto" action="{{ url_for('cargarDocumentos', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
-        <legend class="mb-5">Carga documentación de razón social</legend>
+        <legend class="mb-5">Carga documentación accionistas</legend>
         <div class="row mb-5">
             <div class="col-sm-12 mb-3">
                 <label for="formFile" class="form-label">Razon Social</label>

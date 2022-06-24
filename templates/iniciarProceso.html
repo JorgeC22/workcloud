@@ -18,16 +18,18 @@
         <div class="mb-5">
             <label for="exampleFormControlInput1" class="form-label">Distribuidor</label>
             <input type="text" name="distribuidor" class="form-control" id="inputDistribuidor" value="{{session.distribuidor}}" readonly>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="text-center text-danger">{{ message }}</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-danger"></p>
+                {% endif %}
+            {% endwith %}
         </div>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <p class="text-center text-danger">{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
         <button type="submit" class="btn btn-success">Iniciar Proceso</button>
-        <a class="btn btn-secondary" href="{{ url_for('listaInstancias') }}">Regresar</a>
+        <a rel="nofollow" class="btn btn-secondary" href="{{ url_for('listaInstancias') }}">Regresar</a>
     </form>
 </div>
 

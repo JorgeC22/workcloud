@@ -4,7 +4,6 @@ window.onload=function(){
         var URLactual = document.URL;
         var URLnew = URLactual.replace("listaInstancias", "consultaInstancias");
         var URLbase = URLactual.replace("listaInstancias", "");
-        console.log(URLnew);
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);
@@ -12,10 +11,7 @@ window.onload=function(){
         xhttp.onreadystatechange = function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
-                console.log(json);
-
                 var tablebody = document.getElementById('bodytable');
-                console.log(json.length);
 
                 for (var i = 0; i < json.length; i++) {
                     
@@ -38,15 +34,12 @@ window.onload=function(){
                     pagina = pagina.split(" ").join("");
                     var btnInstancia = boton("Abrir Instancia",URLbase+pagina+"/"+json[i].id,"btn btn-success","abrirInstancia");
                     btn.appendChild(btnInstancia);
-
-                    console.log(json[i].tarea);
                     
 
                     renglon.appendChild(idProceso);
                     renglon.appendChild(tarea);
                     renglon.appendChild(fechahora);
                     renglon.appendChild(btn);
-                    console.log(renglon);
                     tablebody.appendChild(renglon);
                 }
             }

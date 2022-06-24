@@ -1,6 +1,6 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
-<h1 class="mb-5">Impresion Firma de Contrato Fisico por Duplicado</h1>
+<h1 class="mb-5">Impresion firma de contrato fisico por duplicado</h1>
 
 <form id="base_descarga" action="{{ url_for('terminarDescarga', idproceso=idproceso, idtask=idtask) }}" method="post">
     <div class="row mb-5">
@@ -17,9 +17,10 @@
             <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
         </div>
     </div>
-    <a href="" id="btnDescargar" download class="btn btn-success"></a>
-    <button class="btn btn-primary" type="submit">Cargar Contrato Fisico Firmado</button>
-    <a href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
+    <p class="mb-3">Descarga el contrato para su envio de forma fisica y una vez realizado continua el proceso en "Proceder al envio del contrato".</p>
+    <a rel="nofollow" href="" id="btnDescargar" download class="btn btn-success">Descargar contrato para impresion</a>
+    <button class="btn btn-primary" id="btnSiguienteTarea" type="submit">Proceder al envio del contrato</button>
+    <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>
 
 

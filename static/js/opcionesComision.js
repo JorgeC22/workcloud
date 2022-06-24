@@ -1,9 +1,9 @@
 var inputCashOutCantidad = document.getElementById('inputCashOutCantidad');
 inputCashOutCantidad.setAttribute("oninput", "caracteristicasCampoPorcentual(this);");
-inputCashOutCantidad.setAttribute("placeholder", "%");
+inputCashOutCantidad.setAttribute("placeholder", "0.00%");
 var inputCashInCantidad = document.getElementById('inputCashInCantidad');
 inputCashInCantidad.setAttribute("oninput", "caracteristicasCampoPorcentual(this);");
-inputCashInCantidad.setAttribute("placeholder", "%");
+inputCashInCantidad.setAttribute("placeholder", "0.00%");
 
 function getValorSelectOut(e){
     var inputCashOutCantidad = document.getElementById('inputCashOutCantidad');
@@ -11,11 +11,11 @@ function getValorSelectOut(e){
     if (e.value == "Porcentaje"){
         inputCashOutCantidad.value = "";
         inputCashOutCantidad.setAttribute("oninput", "caracteristicasCampoPorcentual(this);");
-        inputCashOutCantidad.setAttribute("placeholder", "%");
+        inputCashOutCantidad.setAttribute("placeholder", "0.00%");
     }else if (e.value == "Fijo"){
         inputCashOutCantidad.value = "";
         inputCashOutCantidad.setAttribute("oninput", "caracteristicasCampoFijo(this);");
-        inputCashOutCantidad.value = 0;
+        inputCashOutCantidad.value = 0.00;
     }
 };
 
@@ -25,17 +25,18 @@ function getValorSelectIn(e){
     if (e.value == "Porcentaje"){
         inputCashInCantidad.value = "";
         inputCashInCantidad.setAttribute("oninput", "caracteristicasCampoPorcentual(this);");
-        inputCashInCantidad.setAttribute("placeholder", "%");
+        inputCashInCantidad.setAttribute("placeholder", "0.00%");
     }else if (e.value == "Fijo"){
         inputCashInCantidad.value = "";
         inputCashInCantidad.setAttribute("oninput", "caracteristicasCampoFijo(this);");
-        inputCashInCantidad.value = 0;
+        inputCashInCantidad.value = 0.00;
     }
 };
 
 function caracteristicasCampoPorcentual(e){
-    var cambio = parseInt(e.value);
-    e.value = cambio;
+    var t = e.value;
+    var n = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), 3)) : t;
+    e.value = n;
     if (e.value > 100){
         e.value = 100;
     } else if (e.value < 0){
@@ -44,7 +45,12 @@ function caracteristicasCampoPorcentual(e){
 };
 
 function caracteristicasCampoFijo(e){
-    e.value = Math.abs(e.value)
+    var t = e.value;
+    var n = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), 3)) : t;
+    e.value = n;
+    if (e.value < 0){
+        e.value = 0;
+    } 
 };
 
 

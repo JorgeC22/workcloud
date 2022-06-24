@@ -3,7 +3,6 @@ window.onload=function(){
     function usuarios(){
         var URLactual = document.URL;
         var URLnew = URLactual.replace("RevisiondeDocumentacion", "consultaJsonDocumentos");
-        console.log(URLnew);
 
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET',URLnew, true);
@@ -15,8 +14,6 @@ window.onload=function(){
                 var tbody = document.getElementById('bodytable');
                 
                 for (let i = 0; i < json.documentos.length; i++) {
-                    
-                    console.log(json.documentos[i].campo)
 
                     var fila = document.createElement("tr");
 

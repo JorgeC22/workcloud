@@ -6,11 +6,11 @@
             <form action="{{ url_for('validarTokenAccesoRfcNoExiste',distribuidor=distribuidor) }}" method="post">
                 <div class="mb-3">
                     <label for="exampleFormControlInput1" class="form-label">Codigo de Seguridad</label>
-                    <p>Ingrese el codigo de seguridad enviado al correo xxxxez@hxxxx.com.</p>
+                    <p>Ingrese el codigo de seguridad enviado al correo {{session.correoUsuarioMascara}}.</p>
                     <input type="text" name="tokenAcceso" class="form-control" id="exampleFormControlInput1">
                 </div>
                 <button class="btn btn-success" type="submit">Capturar Codigo</button>
-                <a class="btn btn-secondary" href="{{ url_for('datosEmpresa',distribuidor=distribuidor) }}">Regresar</a>
+                <a rel="nofollow" class="btn btn-secondary" href="{{ url_for('datosEmpresa',distribuidor=distribuidor) }}">Regresar</a>
             </form>
         </div> 
     </div>   
