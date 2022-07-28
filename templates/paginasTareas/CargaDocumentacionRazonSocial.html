@@ -1,10 +1,10 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
     <form id="formCargaDocumentosProspecto" action="{{ url_for('cargarDocumentos', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
-        <legend class="mb-5">Carga documentación de razón social</legend>
+        <legend class="mb-5">Carga de documentación de razón social</legend>
         <div class="row mb-5">
             <div class="col-sm-12 mb-3">
-                <label for="formFile" class="form-label">Razon Social</label>
+                <label for="formFile" class="form-label">Razón social</label>
                 <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
             </div>
             <div class="col-sm-6">
@@ -32,7 +32,7 @@
                     <input id="correoContactoProspecto" name="correoContactoProspecto" type="text" class="form-control" aria-label="First name" required>
                 </div>
                 <div class="col-sm-4 mb-3">
-                    <label for="formFile" class="form-label">Puestos</label>
+                    <label for="formFile" class="form-label">Cargo en la empresa</label>
                     <input id="puestoContactoProspecto" type="text" name="puestoContactoProspecto" class="form-control" aria-label="First name" required>
                 </div>
             </div>
@@ -45,6 +45,21 @@
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Acta constitutiva" name="Acta constitutiva" required>
                 <p id="Acta constitutiva" class="parrafoInfo"></p>
             </div>
+            <div id="contenedorInputsActaAsamblea" class="mb-5">
+                <div>
+                    <label for="formFile" class="form-label">Acta de asamblea</label>
+                    <input type="hidden" name="Acta de asamblea" id="Acta de asamblea referencia" value="Acta de asamblea">
+                    <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Acta de asamblea" name="Acta de asamblea" required>
+                    <p id="Acta de asamblea" class="parrafoInfo"></p>
+                </div>
+                <div class="contenedorCheckboxActaAsamblea mb-4">
+                    <input type="checkbox" id="Acta de asamblea" onclick="deshabilitarSeccionActaAsamblea(this)">
+                    <p>Está incluida en el acta constitutiva.</p>
+                </div>
+                <div id="contenedorbtnAgregarCampoActaAsamblea" class="contenedorbtnAgregarCampoActaAsamblea">
+                    <button type="button" id="btnAgregarCampoActaAsamblea" class="btn btn-primary" onclick="agregarCampoActaAsamblea(this)">Agregar acta de asamblea adicional</button>
+                </div>
+            </div>
             <div class="mb-3">
                 <label for="formFile" class="form-label">Poder representante legal</label>
                 <input type="hidden" name="Poder representante legal" id="Poder representante legal referencia" value="Poder representante legal">
@@ -52,21 +67,21 @@
                 <p id="Poder representante legal" class="parrafoInfo"></p>
                 <div class="contenedorCheckbox">
                     <input type="checkbox" id="Poder representante legal" onclick="myFunction(this)">
-                    <p>Esta incluida en el acta constitutiva.</p>
+                    <p>Está incluida en el acta constitutiva.</p>
                 </div>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Registro publico de comercio</label>
+                <label for="formFile" class="form-label">Registro público de comercio</label>
                 <input type="hidden" name="Registro publico de comercio" id="Registro publico de comercio referencia" value="Registro publico de comercio">
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Registro publico de comercio" name="Registro publico de comercio" required>
                 <p id="Registro publico de comercio" class="parrafoInfo"></p>
                 <div class="contenedorCheckbox">
                     <input type="checkbox" id="Registro publico de comercio" onclick="myFunction(this)">
-                    <p>Esta incluida en el acta constitutiva.</p>
+                    <p>Está incluida en el acta constitutiva.</p>
                 </div>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Cedula de identificacion fiscal</label>
+                <label for="formFile" class="form-label">Cedula de identificación fiscal</label>
                 <input type="hidden" name="Cedula de identificacion fiscal" value="Cedula de identificacion fiscal">
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Cedula de identificacion fiscal" name="Cedula de identificacion fiscal" required>
                 <p id="Cedula de identificacion fiscal" class="parrafoInfo"></p>
@@ -78,19 +93,19 @@
                 <p id="Comprobante de domicilio" class="parrafoInfo"></p>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Identificacion Oficial del representante legal</label>
+                <label for="formFile" class="form-label">Identificación oficial del representante legal</label>
                 <input type="hidden" name="Identificacion Oficial del representante legal" value="Identificacion Oficial del representante legal">
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Identificacion Oficial del representante legal" name="Identificacion Oficial del representante legal" required>
                 <p id="Identificacion Oficial del representante legal" class="parrafoInfo"></p>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Comprobante de la generacion de la e.firma (Razon social)</label>
+                <label for="formFile" class="form-label">Comprobante de la generación de la e.firma (razón social)</label>
                 <input type="hidden" name="Comprobante de la generacion e.firma (Razon social)" value="Comprobante de la generacion e.firma (Razon social)">
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Comprobante de la generacion e.firma (Razon social)" name="Comprobante de la generacion e.firma (Razon social)" required>
                 <p id="Comprobante de la generacion e.firma (Razon social)" class="parrafoInfo"></p>
             </div>
             <div class="mb-3">
-                <label for="formFile" class="form-label">Comprobante de la generacion de la e.firma (Representante legal)</label>
+                <label for="formFile" class="form-label">Comprobante de la generación de la e.firma (representante legal)</label>
                 <input type="hidden" name="Comprobante de la Generacion E.Firma (Representante legal)" value="Comprobante de la Generacion E.Firma (Representante legal)">
                 <input class="form-control" type="file" oninput="evaluarArchivo(this)" id="Comprobante de la Generacion E.Firma (Representante legal)" name="Comprobante de la Generacion E.Firma (Representante legal)" required>
                 <p id="Comprobante de la Generacion E.Firma (Representante legal)" class="parrafoInfo"></p>
@@ -98,7 +113,9 @@
         </div>
         <div id="contenedorInputsArchivos" class="mb-5">
         </div>
-        
+        <div>
+            {{ form.csrf_token }}
+        </div>
         <button type="submit" class="btn btn-success mb-5">Continuar Proceso</button>
         <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary mb-5">Regresar</a>
     </form>
@@ -111,8 +128,22 @@
             align-items: center;
         }
 
+        .contenedorCheckboxActaAsamblea{
+            display: flex;
+            align-items: center;
+        }
+
         .contenedorCheckbox p{
             margin: 0 10px;
         }
+
+        .contenedorCheckboxActaAsamblea p {
+            margin: 0 10px;
+        }
+
+        .contenedorbtnAgregarCampoActaAsamblea{
+            text-align: end;
+        }
+
     </style>
 {% endblock %}

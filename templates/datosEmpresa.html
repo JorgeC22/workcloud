@@ -23,6 +23,9 @@
                         {% endif %}
                     {% endwith %}
                 </div>
+                <div>
+                    {{ form.csrf_token }}
+                </div>
                 <div class="botonesDireccionamiento">
                     <button class="btn btn-success" type="submit">Capturar Datos</button>
                     <a rel="nofollow" class="btn btn-secondary" href="{{ url_for('registroNuevaRazonSocial',distribuidor=distribuidor) }}">Regresar</a>

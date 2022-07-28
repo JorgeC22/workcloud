@@ -14,58 +14,66 @@ window.onload=function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
                 var tablebody = document.getElementById('bodytable');
-                for (var i = 0; i < json.length; i++) {
-                    var pagina = json[i].tarea.nombreActividad;
-                    pagina = camelCase(pagina);
-                    pagina = removeAccents(pagina)
-                    
-                    var renglon = document.createElement("tr");
-
-                    var idProceso = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].cliente.razonSocial);
-                    idProceso.appendChild(textoCampo);
-
-                    var rfc = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].cliente.rfc);
-                    rfc.appendChild(textoCampo);
-
-                    var tarea = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].tarea.nombreActividad);
-                    tarea.appendChild(textoCampo);
-
-                    if (json[i].gruposUsuario[0] == json[i].candidatoGrupoPerteneciente){
-                        var responsable = document.createElement("td");
-                        var textoCampo = document.createTextNode("Usted");
-                        responsable.appendChild(textoCampo);
-                    }else{
-                        var responsable = document.createElement("td");
-                        var textoCampo = document.createTextNode(json[i].candidatoGrupoPerteneciente);
-                        responsable.appendChild(textoCampo);
+                
+                if (json.length > 0){
+                    var parrafoInfoTablaInstancias = document.getElementById("parrafoInfoTablaInstancias");
+                    parrafoInfoTablaInstancias.innerText = "";
+                    for (var i = 0; i < json.length; i++) {
+                        var pagina = json[i].tarea.nombreActividad;
+                        pagina = camelCase(pagina);
+                        pagina = removeAccents(pagina)
+                        
+                        var renglon = document.createElement("tr");
+    
+                        var idProceso = document.createElement("td");
+                        var textoCampo = document.createTextNode(json[i].cliente.razonSocial);
+                        idProceso.appendChild(textoCampo);
+    
+                        var rfc = document.createElement("td");
+                        var textoCampo = document.createTextNode(json[i].cliente.rfc);
+                        rfc.appendChild(textoCampo);
+    
+                        var tarea = document.createElement("td");
+                        var textoCampo = document.createTextNode(json[i].tarea.nombreActividad);
+                        tarea.appendChild(textoCampo);
+    
+                        if (json[i].gruposUsuario[0] == json[i].candidatoGrupoPerteneciente){
+                            var responsable = document.createElement("td");
+                            var textoCampo = document.createTextNode("Usted");
+                            responsable.appendChild(textoCampo);
+                        }else{
+                            var responsable = document.createElement("td");
+                            var textoCampo = document.createTextNode(json[i].candidatoGrupoPerteneciente);
+                            responsable.appendChild(textoCampo);
+                        }
+    
+                        var fechahora = document.createElement("td");
+                        var textoCampo = document.createTextNode(json[i].fechaHora);
+                        fechahora.appendChild(textoCampo);
+    
+                        renglon.appendChild(idProceso);
+                        renglon.appendChild(rfc);
+                        renglon.appendChild(tarea);
+                        renglon.appendChild(responsable);
+                        renglon.appendChild(fechahora);
+    
+                        if (json[i].gruposUsuario[0] == json[i].candidatoGrupoPerteneciente){
+                            var btn = document.createElement("td");
+                            var btnInstancia = boton("Ver Tarea",URLbase+pagina+"/"+json[i].id+"/"+json[i].idtask,"btn btn-success","abrirInstancia");
+                            btn.appendChild(btnInstancia);
+                            renglon.appendChild(btn);
+                        }else{
+                            var status = document.createElement("td");
+                            var textoCampo = document.createTextNode("En proceso");
+                            status.appendChild(textoCampo);
+                            renglon.appendChild(status);
+                        }
+    
+                        tablebody.appendChild(renglon);
                     }
-
-                    var fechahora = document.createElement("td");
-                    var textoCampo = document.createTextNode(json[i].fechaHora);
-                    fechahora.appendChild(textoCampo);
-
-                    renglon.appendChild(idProceso);
-                    renglon.appendChild(rfc);
-                    renglon.appendChild(tarea);
-                    renglon.appendChild(responsable);
-                    renglon.appendChild(fechahora);
-
-                    if (json[i].gruposUsuario[0] == json[i].candidatoGrupoPerteneciente){
-                        var btn = document.createElement("td");
-                        var btnInstancia = boton("Ver Tarea",URLbase+pagina+"/"+json[i].id+"/"+json[i].idtask,"btn btn-success","abrirInstancia");
-                        btn.appendChild(btnInstancia);
-                        renglon.appendChild(btn);
-                    }else{
-                        var status = document.createElement("td");
-                        var textoCampo = document.createTextNode("En proceso");
-                        status.appendChild(textoCampo);
-                        renglon.appendChild(status);
-                    }
-
-                    tablebody.appendChild(renglon);
+                }else{
+                    var parrafoInfoTablaInstancias = document.getElementById("parrafoInfoTablaInstancias");
+                    parrafoInfoTablaInstancias.innerText = "No tiene tareas pendientes por el momento.";
                 }
             }
         };

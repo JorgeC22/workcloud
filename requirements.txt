@@ -1,6 +1,7 @@
 flask
 flask-login
+flask-WTF
 Werkzeug
-mariadb
+mariadb==1.0.11
 requests
 pytz

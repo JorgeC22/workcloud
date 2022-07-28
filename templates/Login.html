@@ -5,7 +5,7 @@
         <div class="contenedor_input">
             <form action="{{ url_for('autenticando') }}" method="post">
                 <div class="mb-3">
-                    <label for="exampleFormControlInput1" class="form-label">Ingresa con tu Correo Electronico</label>
+                    <label for="exampleFormControlInput1" class="form-label">Ingresa tu correo electrónico para acceder</label>
                     <input type="text" name="correoUsuario" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}
@@ -17,7 +17,9 @@
                         {% endif %}
                     {% endwith %}
                 </div>
-            
+                <div>
+                    {{ form.csrf_token }}
+                </div>
                 <button type="submit" class="btn btn-success">Acceder</button>
             </form>
         </div>

@@ -1,11 +1,11 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
-<h1 class="mb-5">Revision documentacion</h1>
+<h1 class="mb-5">Revisión documentación</h1>
 
 <form action="{{ url_for('validarDocumentos', idproceso=idproceso, idtask=idtask) }}" method="post">
     <div class="row mb-5">
         <div class="col-sm-12 mb-3">
-            <label for="formFile" class="form-label">Razon Social</label>
+            <label for="formFile" class="form-label">Razón social</label>
             <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
           </div>
         <div class="col-sm-6">
@@ -30,14 +30,8 @@
         <tbody id="bodytable">
         </tbody>
     </table>
-    <div class="contenedorCheckbox mb-5">
-        <input type="checkbox" id="checkboxInLink" disabled onclick="visibilidadSeccionLinkDocumentosAccionistas()">
-        <p id="parrafoInfoInLink" style="color: rgb(114, 114, 114);">Agregar link refente a documentos de accionistas.</p>
-    </div>
-    <div id="contenedorInputLinkDocumentosAccionistas" class="mb-5" style="display: none;">
-        <input type="hidden" name="linkDocumentosAccionistas" value="linkDocumentosAccionistas">
-        <label for="formFile" class="form-label"><b>Link (Documentos accionistas)</b></label>
-        <input type="text" class="form-control" name="linkDocumentosAccionistas" id="linkDocumentosAccionistas">
+    <div>
+        {{ form.csrf_token }}
     </div>
     <button type="submit" class="btn btn-success mb-5">Continuar proceso</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary mb-5">Regresar</a>

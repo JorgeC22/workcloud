@@ -5,7 +5,7 @@
 <form id="base_descarga" class="mb-5" action="{{ url_for('terminarDescarga', idproceso=idproceso, idtask=idtask) }}" method="post">
     <div class="row mb-5">
         <div class="col-sm-12 mb-3">
-            <label for="formFile" class="form-label">Razon Social</label>
+            <label for="formFile" class="form-label">Razón social</label>
             <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
           </div>
         <div class="col-sm-6">
@@ -17,9 +17,12 @@
             <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
         </div>
     </div>
+    <div>
+        {{ form.csrf_token }}
+    </div>
     <p class="mb-3">Descarga el contrato y una vez lo tengas firmado continua el proceso en "Cargar Contrato Firmado".</p>
-    <a rel="nofollow" href="" id="btnDescargar" download class="btn btn-success">Descargar Contrato Digital</a>
-    <button id="btnSiguienteTarea" class="btn btn-primary" type="submit">Cargar Contrato Firmado</button>
+    <a rel="nofollow" href="" id="btnDescargar" download class="btn btn-success">Descargar contrato digital</a>
+    <button id="btnSiguienteTarea" class="btn btn-primary" type="submit">Cargar contrato firmado</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>
 

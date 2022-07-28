@@ -28,6 +28,9 @@
         <label for="exampleFormControlInput1" class="form-label">Numero de Cuenta Alquimiapay</label>
         <input type="text" name="numeroCuentaAlquimiapay" class="form-control" id="exampleFormControlInput1" required>
     </div>
+    <div>
+        {{ form.csrf_token }}
+    </div>
     <button type="submit" class="btn btn-success">Continuar proceso</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>

@@ -13,7 +13,8 @@ window.onload=function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
                 var tbody = document.getElementById('bodytable');
-                var URLbaseFile = "https://"+dominio+"/archivo/"+json.id;
+                //var URLbaseFile = "https://"+dominio+"/archivo/"+json.id;
+                var URLbaseFile = location.origin+"/archivo/"+json.id;
 
                 var inputRazonSocial = document.getElementById('razonSocial');
                 inputRazonSocial.setAttribute("value", json.cliente.razonSocial);
@@ -51,36 +52,38 @@ window.onload=function(){
                     btnlink.appendChild(textofila);
                     ruta.appendChild(btnlink);
 
-                    var btnAceptar = document.createElement("td");
-                    btnAceptar.setAttribute("class", filaDocumento);
-                    var inputAceptar = document.createElement("input");
-                    inputAceptar.setAttribute('class', 'form-check-input');
-                    inputAceptar.setAttribute('id', 'flexRadioDefault1');
-                    inputAceptar.setAttribute('type', 'radio');
-                    inputAceptar.setAttribute('required', "");
-                    inputAceptar.setAttribute('name', filaDocumento);
-                    inputAceptar.setAttribute('value', true);
-                    inputAceptar.setAttribute('onclick', "removerCampoMotivoRechazado(this)");
-                    btnAceptar.appendChild(inputAceptar);
-
-                    var btnRechazar = document.createElement("td");
-                    btnRechazar.setAttribute("class", filaDocumento);
-                    var inputRechazar = document.createElement("input");
-                    inputRechazar.setAttribute('class', 'form-check-input');
-                    inputRechazar.setAttribute('id', 'flexRadioDefault1');
-                    inputRechazar.setAttribute('type', 'radio');
-                    inputRechazar.setAttribute('name', filaDocumento);
-                    inputRechazar.setAttribute('value', "");
-                    inputRechazar.setAttribute('onclick', "agregarCampoMotivoRechazado(this)");
-                    btnRechazar.appendChild(inputRechazar);
-                    
-
-
                     fila.append(inputCampo);
                     fila.append(campo);
                     fila.append(ruta);
-                    fila.append(btnAceptar);
-                    fila.append(btnRechazar);
+
+                    if (json.documentos[i].validacion == false){
+                        var btnAceptar = document.createElement("td");
+                        btnAceptar.setAttribute("class", filaDocumento);
+                        var inputAceptar = document.createElement("input");
+                        inputAceptar.setAttribute('class', 'form-check-input');
+                        inputAceptar.setAttribute('id', 'flexRadioDefault1');
+                        inputAceptar.setAttribute('type', 'radio');
+                        inputAceptar.setAttribute('required', "");
+                        inputAceptar.setAttribute('name', filaDocumento);
+                        inputAceptar.setAttribute('value', true);
+                        inputAceptar.setAttribute('onclick', "removerCampoMotivoRechazado(this)");
+                        btnAceptar.appendChild(inputAceptar);
+
+                        var btnRechazar = document.createElement("td");
+                        btnRechazar.setAttribute("class", filaDocumento);
+                        var inputRechazar = document.createElement("input");
+                        inputRechazar.setAttribute('class', 'form-check-input');
+                        inputRechazar.setAttribute('id', 'flexRadioDefault1');
+                        inputRechazar.setAttribute('type', 'radio');
+                        inputRechazar.setAttribute('name', filaDocumento);
+                        inputRechazar.setAttribute('value', "");
+                        inputRechazar.setAttribute('onclick', "agregarCampoMotivoRechazado(this)");
+                        btnRechazar.appendChild(inputRechazar);
+
+                        fila.append(btnAceptar);
+                        fila.append(btnRechazar);
+                    }
+            
 
                     tbody.append(fila);
                 }
@@ -94,7 +97,7 @@ window.onload=function(){
 
 const agregarCampoMotivoRechazado = (e) => {
     var d = document.querySelectorAll("input[onclick='removerCampoMotivoRechazado(this)']");
-    c = 0;
+    /*c = 0;
     for (let i = 0; i < d.length; i++) {
         if (d[i].checked){
             c-=1;
@@ -119,7 +122,7 @@ const agregarCampoMotivoRechazado = (e) => {
         parrafoInfoInLink.setAttribute("style", "color: rgb(114, 114, 114);")
         contenedorInputLinkDocumentosAccionistas.setAttribute("style", "display: none");
         linkDocumentosAccionistas.value = "";
-    }
+    }*/
 
     elemtPadreChechbox = e.parentNode;
     elemtPadreTd = elemtPadreChechbox.parentNode;
@@ -141,7 +144,7 @@ const agregarCampoMotivoRechazado = (e) => {
 const removerCampoMotivoRechazado = (e) => {
 
     var d = document.querySelectorAll("input[onclick='removerCampoMotivoRechazado(this)']");
-    c = 0;
+    /*c = 0;
     for (let i = 0; i < d.length; i++) {
         if (d[i].checked){
             c+=1;
@@ -167,7 +170,7 @@ const removerCampoMotivoRechazado = (e) => {
         contenedorInputLinkDocumentosAccionistas.setAttribute("style", "display: none");
         linkDocumentosAccionistas.value = "";
     }
-
+*/
     elemtPadreChechbox = e.parentNode;
     elemtPadreTd = elemtPadreChechbox.parentNode;
     numeroElemntosFila = elemtPadreChechbox.parentNode.childElementCount;
@@ -181,15 +184,3 @@ const removerCampoMotivoRechazado = (e) => {
 }
 
 
-const visibilidadSeccionLinkDocumentosAccionistas = (e) => {
-
-    var checkboxInLink = document.getElementById("checkboxInLink");
-    var contenedorInputLinkDocumentosAccionistas = document.getElementById("contenedorInputLinkDocumentosAccionistas");
-    var linkDocumentosAccionistas = document.getElementById("linkDocumentosAccionistas");
-    if(checkboxInLink.checked){
-        contenedorInputLinkDocumentosAccionistas.removeAttribute("style");
-    }else{
-        contenedorInputLinkDocumentosAccionistas.setAttribute("style", "display: none");
-        linkDocumentosAccionistas.value = "";
-    }
-}

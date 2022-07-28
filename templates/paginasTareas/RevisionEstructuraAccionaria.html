@@ -1,0 +1,68 @@
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+<form action="{{ url_for('validarEstructuraAccionaria', idproceso=idproceso, idtask=idtask) }}" method="post">
+    <legend class="mb-5">Revisión estructura accionaria</legend>
+    <div class="row mb-5">
+        <div class="col-sm-12 mb-3">
+            <label for="formFile" class="form-label">Razón social</label>
+            <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+          </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">RFC</label>
+            <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+        </div>
+        <div class="col-sm-6">
+            <label for="formFile" class="form-label">Distribuidor</label>
+            <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+        </div>
+    </div>
+    <div id="contenedorTablasRazonSocialAccinariaDocumentos" class="mb-5">
+    </div>
+    <div id="contenedorInputsRevisionEstructuraAccionistas" class="mb-5">
+        <label for="exampleFormControlInput1" id="labelSeccionValidarEstructuraAccionista" class="form-label">¿La estructura accionaria esta completa?</label>
+        <input type="hidden" id="inputNombreSeccionValidarEstructuraAccionista" name="checkboxValidarEstructuraAccionista" value="checkboxValidarEstructuraAccionista">
+        <div class="row mb-3">
+            <div class="col-sm-1">
+                <label id="labelBtnOpcionValidarEstructuraAccionista" for="">si</label>
+                <input id="checkboxValidarEstructuraAccionista" name="checkboxValidarEstructuraAccionista" type="radio" value="true" onclick="evaluarEstructuraAccionistaCompleta(this)" required>
+            </div>
+            <div class="col-sm-1">
+                <label id="labelBtnOpcionValidarEstructuraAccionista" for="">no</label>
+                <input id="checkboxValidarEstructuraAccionista" name="checkboxValidarEstructuraAccionista" type="radio" value="" onclick="evaluarEstructuraAccionistaCompleta(this)">
+            </div>
+        </div>
+        <div id="contenedorInputRazonSocialAccionista" style="display: none;">
+            <input type="hidden" id="prueba" name="razonSocialAccionariaDocumentacionSolicitada" value="razonSocialAccionariaDocumentacionSolicitada">
+            <div class="mb-4">
+                <label for="formFile" class="form-label mb-3">Ingresa el RFC y razón social accionaria con documentación faltante</label>
+                <input type="hidden" id="inputRazonSocialAccionistaLista" name="razonSocialAccionariaDocumentacionSolicitada">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <input type="text" id="inputRazonSocialAccionista" name="razonSocialAccionista" class="form-control" placeholder="Razon social" oninput="evaluarRazonSocial(this)" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="text" id="inputRFC" name="razonSocialAccionista" class="form-control" placeholder="RFC" required>
+                    </div>
+                </div>
+            </div>
+            <div id="contenedorNuevosInputsRazonSocialAccionaria"></div>
+            <div id="contenedorbtnAgregarRazonSocialAccionaria" class="contenedorbtnAgregarRazonSocialAccionaria">
+                <button type="button" id="btnAgregarRazonSocialAccionaria" class="btn btn-primary" onclick="agregarCampoRazonSocialAccionaria(this)">Agregar razon social accionaria</button>
+            </div>
+        </div>
+    </div>
+    <div>
+        {{ form.csrf_token }}
+    </div>
+    <button type="submit" class="btn btn-success mb-5">Continuar proceso</button>
+    <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary mb-5">Regresar</a>
+</form>
+
+<script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosRevisionEstructuraAccionistas.js') }}"></script>
+
+<style>
+    .contenedorbtnAgregarRazonSocialAccionaria{
+        text-align: end;
+    }
+</style>
+{% endblock %}

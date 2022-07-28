@@ -15,7 +15,7 @@ function getValorSelectOut(e){
     }else if (e.value == "Fijo"){
         inputCashOutCantidad.value = "";
         inputCashOutCantidad.setAttribute("oninput", "caracteristicasCampoFijo(this);");
-        inputCashOutCantidad.value = 0.00;
+        inputCashOutCantidad.setAttribute("placeholder", "0.00");
     }
 };
 
@@ -29,25 +29,75 @@ function getValorSelectIn(e){
     }else if (e.value == "Fijo"){
         inputCashInCantidad.value = "";
         inputCashInCantidad.setAttribute("oninput", "caracteristicasCampoFijo(this);");
-        inputCashInCantidad.value = 0.00;
+        inputCashInCantidad.setAttribute("placeholder", "0.00");
     }
 };
 
 function caracteristicasCampoPorcentual(e){
-    var t = e.value;
-    var n = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), 3)) : t;
-    e.value = n;
+    var cadena = String(e.value);
+    contienePuntoDecimal = cadena.includes(".");
+    var posicionPuntoDecimal = cadena.indexOf(".");
+    var cont = 0;
+
+
+    for (let c = posicionPuntoDecimal+1; c < cadena.length; c++) {
+        cont+=1;
+    }   
+    
+
+    if (contienePuntoDecimal){
+        var splitString = cadena.split(".");
+        var decimales = splitString[1];
+        if (cont >= 2){
+            var decimalesModificado = decimales.slice(0,2);
+        }else{
+            var decimalesModificado = decimales;
+        }
+        splitString[1] = decimalesModificado;
+        var nuevaCadena = splitString.join(".");
+        e.value = nuevaCadena;
+    }
+    else{
+        var nuevaCadena = cadena;
+    }
+
+
     if (e.value > 100){
         e.value = 100;
-    } else if (e.value < 0){
+    } 
+    if (e.value < 0){
         e.value = 0;
     }
 };
 
 function caracteristicasCampoFijo(e){
-    var t = e.value;
-    var n = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), 3)) : t;
-    e.value = n;
+    var cadena = String(e.value);
+    contienePuntoDecimal = cadena.includes(".");
+    var posicionPuntoDecimal = cadena.indexOf(".");
+    var cont = 0;
+
+
+    for (let c = posicionPuntoDecimal+1; c < cadena.length; c++) {
+        cont+=1;
+    }   
+    
+
+    if (contienePuntoDecimal){
+        var splitString = cadena.split(".");
+        var decimales = splitString[1];
+        if (cont >= 2){
+            var decimalesModificado = decimales.slice(0,2);
+        }else{
+            var decimalesModificado = decimales;
+        }
+        splitString[1] = decimalesModificado;
+        var nuevaCadena = splitString.join(".");
+        e.value = nuevaCadena;
+    }
+    else{
+        var nuevaCadena = cadena;
+    }
+
     if (e.value < 0){
         e.value = 0;
     } 

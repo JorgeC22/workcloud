@@ -22,6 +22,9 @@
         <p style="font-size: 11px;">Indique la fecha de cuando recibio el contrato Original.</p>
         <input type="hidden" name="señalProcesoFinaliza" value="final">
     </div>
+    <div>
+        {{ form.csrf_token }}
+    </div>
     <button type="submit" class="btn btn-success">Finalizar proceso</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>

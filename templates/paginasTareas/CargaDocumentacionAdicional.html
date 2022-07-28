@@ -1,0 +1,61 @@
+{% extends "vistaBaseAplicacion.html" %}
+{% block content %}
+    <form id="formCargaDocumentosProspecto" action="{{ url_for('cargarDocumentosRazonSocialAccionaria', idproceso=idproceso, idtask=idtask) }}" method="post" enctype="multipart/form-data">
+        <legend id="TituloVistaTarea" class="mb-3">Carga documentación adicional</legend>
+        <p id="parrafoInfoCargaDocumentosRazonSocialAccionaria" class="mb-5"></p>
+        
+        <div class="row mb-5">
+            <div class="col-sm-12 mb-3">
+                <label for="formFile" class="form-label">Razon Social</label>
+                <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
+            </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">RFC</label>
+                <input id="rfc" type="text" class="form-control" aria-label="First name" readonly>
+            </div>
+            <div class="col-sm-6">
+                <label for="formFile" class="form-label">Distribuidor</label>
+                <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
+            </div>
+        </div>
+        <div id="contenedorInputsArchivosInicial" class="mb-5">
+            <h4 id="tituloSeccionArchivos" class="mb-3"></h4>
+            
+        </div>
+        <div id="contenedorInputsArchivos" class="mb-5">
+        </div>
+        <div>
+            {{ form.csrf_token }}
+        </div>
+        <button type="submit" class="btn btn-success mb-5">Continuar Proceso</button>
+        <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary mb-5">Regresar</a>
+    </form>
+
+    <!--<script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesoDocumentacionAdicional.js') }}"></script>-->
+    <script type='text/javascript' src="{{ url_for('static', filename='js/cargaDatosProcesoDocumentacionAdicional.js') }}"></script>
+
+    <style>
+        .contenedorCheckbox{
+            display: flex;
+            align-items: center;
+        }
+
+        .contenedorCheckboxActaAsamblea{
+            display: flex;
+            align-items: center;
+        }
+
+        .contenedorCheckbox p{
+            margin: 0 10px;
+        }
+
+        .contenedorCheckboxActaAsamblea p {
+            margin: 0 10px;
+        }
+
+        .contenedorbtnAgregarCampoActaAsamblea{
+            text-align: end;
+        }
+
+    </style>
+{% endblock %}

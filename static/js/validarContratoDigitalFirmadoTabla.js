@@ -13,7 +13,8 @@ window.onload=function(){
         xhttp.onreadystatechange = function(){
             if(this.readyState==4 && this.status==200){
                 var json = JSON.parse(this.responseText);
-                var URLbaseFile = "https://"+dominio+"/archivo/"+json.id;
+                //var URLbaseFile = "https://"+dominio+"/archivo/"+json.id;
+                var URLbaseFile = location.origin+"/archivo/"+json.id;
 
                 var inputRazonSocial = document.getElementById('razonSocial');
                 inputRazonSocial.setAttribute("value", json.cliente.razonSocial);

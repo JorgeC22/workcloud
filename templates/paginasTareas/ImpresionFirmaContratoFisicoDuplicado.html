@@ -1,6 +1,6 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
-<h1 class="mb-5">Impresion firma de contrato fisico por duplicado</h1>
+<h1 class="mb-5">Impresión firma de contrato físico por duplicado</h1>
 
 <form id="base_descarga" action="{{ url_for('terminarDescarga', idproceso=idproceso, idtask=idtask) }}" method="post">
     <div class="row mb-5">
@@ -17,7 +17,14 @@
             <input id="distribuidor" type="text" class="form-control" aria-label="Last name" readonly>
         </div>
     </div>
-    <p class="mb-3">Descarga el contrato para su envio de forma fisica y una vez realizado continua el proceso en "Proceder al envio del contrato".</p>
+    <div>
+        {{ form.csrf_token }}
+    </div>
+    <ol>
+        <li>Descarga el contrato haciendo clic en el botón verde.</li>
+        <li>Imprímelo por duplicado y recaba las firmas necesarias.</li>
+        <li>Una vez tengas los dos juegos firmados haz clic en el botón "Proceder al envio del contrato".</li>
+    </ol>
     <a rel="nofollow" href="" id="btnDescargar" download class="btn btn-success">Descargar contrato para impresion</a>
     <button class="btn btn-primary" id="btnSiguienteTarea" type="submit">Proceder al envio del contrato</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>

@@ -26,6 +26,9 @@
         </div>
         <div id="contenedorInputContratoFirmadoRechazado" class="mb-5">
         </div>
+        <div>
+            {{ form.csrf_token }}
+        </div>
         <button type="submit" class="btn btn-success">Continuar proceso</button>
         <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
     </form>

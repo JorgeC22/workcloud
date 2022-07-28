@@ -1,0 +1,10 @@
+.not-active { 
+    pointer-events: none; 
+    cursor: default; 
+    color: gray;
+} 
+
+.btn-nativo{
+    padding: 3px 15px;
+    font-size: 10px;
+}

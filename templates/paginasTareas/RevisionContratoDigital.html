@@ -1,11 +1,11 @@
 {% extends "vistaBaseAplicacion.html" %}
 {% block content %}
-<h1 class="mb-5">Revision contrato digital</h1>
+<h1 class="mb-5">Revisión contrato digital</h1>
 
 <form action="{{ url_for('validarContrato', idproceso=idproceso, idtask=idtask) }}" method="post">
     <div class="row mb-5">
         <div class="col-sm-12 mb-3">
-            <label for="formFile" class="form-label">Razon Social</label>
+            <label for="formFile" class="form-label">Razón social</label>
             <input id="razonSocial" type="text" class="form-control" aria-label="First name" readonly>
           </div>
         <div class="col-sm-6">
@@ -30,6 +30,9 @@
         <tbody id="bodytable">
         </tbody>
     </table>
+    <div>
+        {{ form.csrf_token }}
+    </div>
     <button type="submit" class="btn btn-success">Continuar proceso</button>
     <a rel="nofollow" href="{{ url_for('listaInstancias') }}" class="btn btn-secondary">Regresar</a>
 </form>

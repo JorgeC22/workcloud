@@ -2,24 +2,27 @@
 {% block content %}
 <h1>Bienvenido</h1>
 <p class="mb-5">Complete las tareas asignadas a su usuario.</p>
-<table class="table">
-    <thead class="table-dark">
-        <tr>
-            <th>Razon Social</th>
-            <th>RFC</th>
-            <th>Tarea</th>
-            <th>Responsable</th>
-            <th>Fecha-Hora</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody id="bodytable">
-    </tbody>
-</table>
+<div id="contenedorTablaInstancias" class="mb-5">
+    <table class="table">
+        <thead class="table-dark">
+            <tr>
+                <th>Razon Social</th>
+                <th>RFC</th>
+                <th>Tarea</th>
+                <th>Responsable</th>
+                <th>Fecha-Hora</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="bodytable">
+        </tbody>
+    </table>
+    <p id="parrafoInfoTablaInstancias"></p>
+</div>
 
 {% for s in session.grupos %}
     {% if s == "Prospectos" %}
-        <a rel="nofollow" class="btn btn-success" href="{{ url_for('registro') }}">Registrar Nueva Razon Social</a>
+        <a rel="nofollow" class="btn btn-success mb-5" href="{{ url_for('registro') }}">Iniciar proceso de alta para una nueva razón social</a>
     {% endif %}
 {% endfor %}
 

@@ -9,6 +9,9 @@
                     <p>Ingrese el codigo de seguridad enviado al correo {{session.correoUsuarioMascara}} .</p>
                     <input type="text" name="tokenAcceso" class="form-control" id="exampleFormControlInput1">
                 </div>
+                <div>
+                    {{ form.csrf_token }}
+                </div>
                 <button class="btn btn-success" type="submit">Capturar Codigo</button>
                 <a rel="nofollow" class="btn btn-secondary" href="{{ url_for('login') }}">Regresar</a>
             </form>

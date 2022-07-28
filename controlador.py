@@ -1,15 +1,15 @@
-import os
-from re import L
-from urllib import response
-import uuid
 from xmlrpc.client import boolean
-import requests
-import json
-from datetime import datetime, timedelta
-from pytz import timezone
-import base64
 from flask import *
 from conexion import *
+from datetime import datetime, timedelta
+from pytz import timezone
+
+import os
+import uuid
+import requests
+import json
+import base64
+
 
 host = ""
 
@@ -52,6 +52,16 @@ def getProcesoActividad(jsonProceso):
         }
       
     return jsonProceso
+
+##Funcion para obtener los datos de un a Razon social accionaria.
+def getJsonVariableRazonSocialAccionaria(idProceso,rfcRazonSocialAccionaria):
+    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/"+str(rfcRazonSocialAccionaria)+""
+    response = requests.get(baseUrl)
+    jsonVariablesProceso = response.json()
+    jsonVariablesRazonSocialAccionariaString = jsonVariablesProceso['value']
+    jsonVariablesRazonSocialAccionaria = json.loads(jsonVariablesRazonSocialAccionariaString)
+    return jsonVariablesRazonSocialAccionaria
+
 
 ##Funciones que permiten obtener informacion y concluir las tareas de una Instancia de proceso.
 def getTaskProcesos(listaJsonProcesos):
@@ -133,6 +143,64 @@ def filesCompleteTask(idTask,jsonProceso,jsonFiles):
     print("La respuesta del servidor es: ")
     print(f"Tarea  Completado: {idTask}")
 
+def accionistasCompleteTask(idTask,jsonProceso,variablesRazonSocialAccionaria):
+    if "id" in jsonProceso:
+        jsonProceso.pop('id')
+    if "tarea" in jsonProceso:
+        jsonProceso.pop('tarea')
+    if "candidatoGrupoPerteneciente" in jsonProceso:
+        jsonProceso.pop('candidatoGrupoPerteneciente')
+
+
+    baseUrl = "http://"+host+"/engine-rest/task/"+str(idTask)+"/complete"
+    jsonProcesoString = json.dumps(jsonProceso)
+    data = {
+        "variables": {
+            "datosProcesoAccionistas": {
+                "value": ""+jsonProcesoString,
+                "type": "String"
+            }
+        }
+    }
+    
+    if variablesRazonSocialAccionaria:
+        data['variables'].update(variablesRazonSocialAccionaria)
+    
+
+    response = requests.post(baseUrl, json=data)
+
+    print("La respuesta del servidor es: ")
+    print(f"Tarea  Completado: {idTask}")
+
+def filesAccionistasCompleteTask(idTask,jsonProceso,jsonFiles,jsonRazonSocialAccionarias):
+    if "id" in jsonProceso:
+        jsonProceso.pop('id')
+    if "tarea" in jsonProceso:
+        jsonProceso.pop('tarea')
+    if "candidatoGrupoPerteneciente" in jsonProceso:
+        jsonProceso.pop('candidatoGrupoPerteneciente')
+
+    baseUrl = "http://"+host+"/engine-rest/task/"+str(idTask)+"/complete"
+    jsonDatosProcesoAccionistasString = json.dumps(jsonProceso)
+
+    jsonRazonSocialAccionarias.update(jsonFiles)
+    jsonVariables = jsonRazonSocialAccionarias
+    #jsonVariablesString = json.dumps(jsonVariables)
+    data = {
+        "variables": {
+            "datosProcesoAccionistas": {
+                "value": jsonDatosProcesoAccionistasString,
+                "type": "String"
+            }
+        }
+    }
+    data['variables'].update(jsonVariables)
+    response = requests.post(baseUrl, json=data)
+
+    print("La respuesta del servidor es: ")
+    print(f"Tarea  Completado: {idTask}")
+
+
 ##Funciones para obtener el JSON de una Instancia de Proceso.
 def getJsonProceso(idProceso):
     baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables"
@@ -143,6 +211,30 @@ def getJsonProceso(idProceso):
     jsonDatosProceso['id'] = idProceso
 
     return jsonDatosProceso
+
+def getJsonDatosProcesoAccionistas(idProceso):
+    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables"
+    response = requests.get(baseUrl)
+    jsonVariablesProceso = response.json()
+    jsonDatosProcesoAccionistas = jsonVariablesProceso['datosProcesoAccionistas']['value']
+    jsonDatosProcesoAccionistas = json.loads(jsonDatosProcesoAccionistas)
+    jsonDatosProcesoAccionistas['id'] = idProceso
+    return jsonDatosProcesoAccionistas
+
+def getListaJsonVariableRazonSocialAccionaria(idProceso, jsonDatosProcesoAccionistas):
+    listaJsonVariableRazonSocialAccionaria = []
+    if "validacionEstructuraAccionaria" in jsonDatosProcesoAccionistas:
+        if jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialValidando']:
+            for jdpa in jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialValidando']:
+                baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/"+jdpa['rfc']+""
+                response = requests.get(baseUrl)
+                jsonVariablesProceso = response.json()
+                jsonVariableRazonSocialAccionaria = jsonVariablesProceso['value']
+                jsonVariableRazonSocialAccionaria = json.loads(jsonVariableRazonSocialAccionaria)
+                listaJsonVariableRazonSocialAccionaria.append(jsonVariableRazonSocialAccionaria)
+        
+    return listaJsonVariableRazonSocialAccionaria
+
 
 def getlistJsonProceso(listaJsonProcesos):
     nuevaListaJsonProcesos = []
@@ -161,11 +253,74 @@ def getlistJsonProceso(listaJsonProcesos):
 def actualizarJSONdocumentos(jsonProceso,listasValueForm):
     for d in jsonProceso['documentos']:
         for l in listasValueForm:
-            if d['nombreDoc'] == l[0]:
-                d['validacion'] = boolean(l[1])
-                if len(l) > 2:
-                    d['motivoRechazo'] = l[2]
+            if len(l) > 1:
+                if d['nombreDoc'] == l[0]:
+                    d['validacion'] = boolean(l[1])
+                    if len(l) > 2:
+                        d['motivoRechazo'] = l[2]
     return jsonProceso
+
+def actualizarJSONdocumentosAccionistas(jsonDatosProcesoAccionistas,listasValueForm,listaJsonVariablesRazonSocialAccionaria):
+    variables = {}
+    if listaJsonVariablesRazonSocialAccionaria:
+        for lvrsa in listaJsonVariablesRazonSocialAccionaria:
+            for drsa in lvrsa['documentos']:
+                for lvf in listasValueForm:
+                    if lvf[0] == drsa['nombreDoc']:
+                        if len(lvf) > 1:
+                            drsa['validacion'] = boolean(lvf[1])
+                        if len(lvf) > 2:
+                            drsa['motivoRechazo'] = lvf[2]
+
+            jsonRazonSocialAccionariaString = json.dumps(lvrsa)
+            variableRazonSocial = {
+                "value": jsonRazonSocialAccionariaString,
+                "type": "string"
+            }
+
+            variables[lvrsa['rfc']] = variableRazonSocial
+
+
+
+    return variables
+
+def actualizarJsonDatosProcesoAccionistas(jsonProcesoDatosAccionistas):
+    
+
+    if len(jsonProcesoDatosAccionistas['documentosAccionistas']) == 0:
+        listaJsonRazonSocialAccionaria = []
+        for lrsaf in jsonProcesoDatosAccionistas['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']:
+            data = {
+                "razonSocial": lrsaf['razonSocial'],
+                "rfc": lrsaf['rfc'],
+                "documentos": []
+            }
+            listaJsonRazonSocialAccionaria.append(data)
+    else:
+        listaJsonRazonSocialAccionaria = list(jsonProcesoDatosAccionistas['documentosAccionistas'])
+        for lrsaf in jsonProcesoDatosAccionistas['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']:
+            for ljrsa in listaJsonRazonSocialAccionaria:
+                if lrsaf == ljrsa['razonSocial']:
+                    razonSocialRegistrado = True
+                    break
+                else:
+                    razonSocialRegistrado = False
+            
+            if razonSocialRegistrado == False:
+                data = {
+                    "razonSocial": lrsaf['razonSocial'],
+                    "rfc": lrsaf['rfc'],
+                    "documentos": []
+                }
+
+                listaJsonRazonSocialAccionaria.append(data)
+
+
+    
+    jsonProcesoDatosAccionistas['documentosAccionistas'] = listaJsonRazonSocialAccionaria
+    jsonProcesoDatosAccionistas['validacionEstructuraAccionaria']['razonSocialValidando'] = jsonProcesoDatosAccionistas['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']
+    
+    return jsonProcesoDatosAccionistas
 
 def ingresarLinkAccionistas(jsonProceso,listasValueForm):
     for l in listasValueForm:
@@ -197,18 +352,21 @@ def actualizarJSONcontrato(jsonProceso,listasValueForm):
 def actualizarJSONcuenta(jsonProceso,jsonForm):
     for f in jsonForm.keys():
         key = f
+        break
     jsonProceso['cuentaCliente'][f] = jsonForm[f]
     return jsonProceso
 
 def agregarFechaEnvioContratoFisico(jsonProceso,jsonForm):
     for jf in jsonForm.keys():
         key = jf
+        break
     jsonProceso['contrato'][jf] = jsonForm[jf]
     return jsonProceso
 
 def actualizarJSONenvioContratoOriginalCliente(jsonProceso,jsonForm):
     for f in jsonForm.keys():
         key = f
+        break
     jsonProceso['envioContratoOriginalCliente'][f] = jsonForm[f]
     return jsonProceso
 
@@ -260,6 +418,183 @@ def crearJsonDocumentos(listasValuesForm,jsonProceso,Files):
     return jsonProceso
 
 
+def crearJsonDocumentosRazonSocialAccionaria(listasValuesForm,jsonProceso,Files):
+    #listaValues = listasValuesForm.values
+
+    listaRazonSocialAccionaria = []
+    for l in listasValuesForm:
+        listaRazonSocialAccionaria = l
+        break
+    
+    variables = {}
+
+    for lrsa in listaRazonSocialAccionaria:
+        if len(jsonProceso['documentosAccionistas']) > 0:
+            for jrsa in jsonProceso['documentosAccionistas']:
+                if lrsa == jrsa['razonSocial']:
+                    razonSocialJsonExiste = True
+                    break
+                else:
+                    razonSocialJsonExiste = False
+        else:
+            razonSocialJsonExiste = False
+
+        
+        if razonSocialJsonExiste:
+            for jp in jsonProceso['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']:
+                    if lrsa == jp['razonSocial']:
+                        rfcRazonSocialAccionaria = jp['rfc']
+                        break
+
+            baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(jsonProceso['id'])+"/variables/"+rfcRazonSocialAccionaria+""
+            response = requests.get(baseUrl)
+            jsonVariablesProceso = response.json()
+            jsonVariableRazonSocialAccionaria = jsonVariablesProceso['value']
+            jsonVariableRazonSocialAccionaria = json.loads(jsonVariableRazonSocialAccionaria)
+            
+
+            for jvrsa in jsonVariableRazonSocialAccionaria['documentos']:
+                for lvf in listasValuesForm:
+                    if len(lvf) == 1 :
+                        if jvrsa['nombreDoc'] == lvf[0]:
+                            
+                            archivo = Files.getlist(jvrsa['nombreDoc'])
+                            if archivo:
+                                listaCaracteresNombreArchivo = list(archivo[0].filename)
+
+                                for r in range(0,archivo[0].filename.find(".")):
+                                    del listaCaracteresNombreArchivo[0]
+
+                                extensionArchivo = "".join(listaCaracteresNombreArchivo)
+                                jvrsa['nombreArchivo'] = jvrsa['nombreDoc']+extensionArchivo
+                                jvrsa['validacion'] = ""
+                                jvrsa['motivoRechazo'] = ""
+            
+            jsonRazonSocialAccionariaString = json.dumps(jsonVariableRazonSocialAccionaria)
+
+            nuevaVariable =  {
+                "value": jsonRazonSocialAccionariaString,
+                "type": "string"
+            }
+            variables[rfcRazonSocialAccionaria] = nuevaVariable
+        else:
+            for lrsa in listaRazonSocialAccionaria:
+                for jp in jsonProceso['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']:
+                    if lrsa == jp['razonSocial']:
+                        rfcRazonSocialAccionaria = jp['rfc']
+                        break
+
+                data = []
+                for lvf in listasValuesForm:
+                    if len(lvf) == 1 :
+                        if str(lrsa) in lvf[0]:
+                            archivo = Files.getlist(lvf[0])
+                            if archivo:
+                                nuevoFileName = lvf[0].replace("("+lrsa+")", rfcRazonSocialAccionaria)
+
+                                
+
+                                listaCaracteresNombreArchivo = list(archivo[0].filename)
+                                for r in range(0,archivo[0].filename.find(".")):
+                                    del listaCaracteresNombreArchivo[0]
+                                extensionArchivo = "".join(listaCaracteresNombreArchivo)
+
+                                documentoInfo = {
+                                    "nombreDoc": nuevoFileName,
+                                    "nombreArchivo": nuevoFileName+extensionArchivo,
+                                    "validacion": "",
+                                    "motivoRechazo": ""
+                                }
+                                
+                                data.append(documentoInfo)
+                
+                jsonRazonSocialAccionaria = {
+                    "razonSocial": lrsa,
+                    "rfc": rfcRazonSocialAccionaria,
+                    "documentos": data
+                }
+                jsonRazonSocialAccionariaString = json.dumps(jsonRazonSocialAccionaria)
+
+                nuevaVariable =  {
+                    "value": jsonRazonSocialAccionariaString,
+                    "type": "string"
+                }
+                variables[rfcRazonSocialAccionaria] = nuevaVariable
+    
+    return variables
+    
+
+    
+
+
+"""
+def crearJsonDocumentosRazonSocialAccionaria(listasValuesForm,jsonProceso,Files):
+    data = []
+    #listaValues = listasValuesForm.values
+
+    if len(jsonProceso['documentosAccionistas']) > 0:
+        listaRazonSocialAccionistas = jsonProceso["documentosAccionistas"]
+        for lvf in listasValuesForm:
+            archivo = Files.getlist(lvf[0])
+            if archivo:
+                listaCaracteresNombreArchivo = list(archivo[0].filename)
+                for r in range(0,archivo[0].filename.find(".")):
+                    del listaCaracteresNombreArchivo[0]
+                extensionArchivo = "".join(listaCaracteresNombreArchivo)
+                json = {
+                    "nombreDoc": lvf[0],
+                    "nombreArchivo": lvf[0]+extensionArchivo,
+                    "validacion": "",
+                    "motivoRechazo": ""
+                }
+                data.append(json)
+        
+        for n in listasValuesForm:
+            print()
+            print(n)
+            razonSocialAccionaria = n[0]
+            break
+
+        jsonRazonSocialAccionaria = {
+            "razonSocial": razonSocialAccionaria,
+            "documentos": data
+        }
+        print(jsonRazonSocialAccionaria)
+        listaRazonSocialAccionistas.append(jsonRazonSocialAccionaria)
+    else:
+        listaRazonSocialAccionistas = jsonProceso["documentosAccionistas"]
+        for lvf in listasValuesForm:
+            archivo = Files.getlist(lvf[0])
+            if archivo:
+                listaCaracteresNombreArchivo = list(archivo[0].filename)
+                for r in range(0,archivo[0].filename.find(".")):
+                    del listaCaracteresNombreArchivo[0]
+                extensionArchivo = "".join(listaCaracteresNombreArchivo)
+                json = {
+                    "nombreDoc": lvf[0],
+                    "nombreArchivo": lvf[0]+extensionArchivo,
+                    "validacion": "",
+                    "motivoRechazo": ""
+                }
+                data.append(json)
+
+        for n in listasValuesForm:
+            print()
+            print(n)
+            razonSocialAccionaria = n[0]
+            break
+
+        jsonRazonSocialAccionaria = {
+            "razonSocial": razonSocialAccionaria,
+            "documentos": data
+        }
+        listaRazonSocialAccionistas.append(jsonRazonSocialAccionaria)
+
+    jsonProceso['documentosAccionistas'] = listaRazonSocialAccionistas
+    
+    return jsonProceso
+"""
+
 def crearJsonFile(listaValuesForm, Files, jsonProceso):
     nuevoJson = {}
     for lvf in listaValuesForm:
@@ -295,12 +630,94 @@ def crearJsonFile(listaValuesForm, Files, jsonProceso):
     return nuevoJson
 
 
+def crearJsonFileAccionistas(listaValuesForm, Files, jsonProceso):
+    nuevoJson = {}
+    for lvf in listaValuesForm:
+        archivo = Files.getlist(lvf[0])
+        if archivo:
+            if archivo[0].filename:
+                for jp in jsonProceso['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante']:
+                    if jp['razonSocial'] in lvf[0]:
+                        nuevoFileNameArchivo = lvf[0].replace("("+jp['razonSocial']+")", jp['rfc'])
+                        
+                
+                        archivo[0].save("./archivos/"+archivo[0].filename)
+                        with open("./archivos/"+archivo[0].filename, "rb") as arc:
+                            code = base64.b64encode(arc.read())
+
+                        listaCaracteresNombreArchivo = list(archivo[0].filename)
+                        for r in range(0,archivo[0].filename.find(".")):
+                            del listaCaracteresNombreArchivo[0]
+                        extensionArchivo = "".join(listaCaracteresNombreArchivo)
+
+                        data = {
+                            nuevoFileNameArchivo: {
+                                "type": "File",
+                                "value": code.decode(),
+                                "valueInfo": {
+                                    "filename": nuevoFileNameArchivo+extensionArchivo,
+                                    "mimeType": archivo[0].content_type
+                                }
+                            }
+                        }
+
+
+                        if nuevoJson:
+                            nuevoJson.update(data)
+                        else:
+                            nuevoJson = data
+                        
+
+                        os.remove("./archivos/"+archivo[0].filename)
+                        break
+        
+
+    return nuevoJson
+
+
+"""
+def crearJsonFileAccionistas(listaValuesForm, Files, jsonProceso):
+    nuevoJson = {}
+    for lvf in listaValuesForm:
+        archivo = Files.getlist(lvf[0])
+        if archivo:
+            if archivo[0].filename:
+                archivo[0].save("./archivos/"+archivo[0].filename)
+                with open("./archivos/"+archivo[0].filename, "rb") as arc:
+                    code = base64.b64encode(arc.read())
+
+                listaCaracteresNombreArchivo = list(archivo[0].filename)
+                for r in range(0,archivo[0].filename.find(".")):
+                    del listaCaracteresNombreArchivo[0]
+                extensionArchivo = "".join(listaCaracteresNombreArchivo)
+                
+                data = {
+                    lvf[0]: {
+                        "type": "File",
+                        "value": code.decode(),
+                        "valueInfo": {
+                            "filename": lvf[0]+extensionArchivo,
+                            "mimeType": archivo[0].content_type
+                        }
+                    }
+                }
+
+                if nuevoJson:
+                    nuevoJson.update(data)
+                else:
+                    nuevoJson = data
+
+                os.remove("./archivos/"+archivo[0].filename)
+    return nuevoJson
+"""
+
 def crearJsonDatosContacto(listaValuesForm,jsonProceso,Files):
     listaDatosContacto = []
     for lvf in listaValuesForm:
         archivo = Files.getlist(lvf[0])
         if archivo:
-            print("No existe archivo con ese nombre nodo.")
+            #print("No existe archivo con ese nombre nodo.")
+            print()
         else:
             listaDatosContacto.append(lvf)
 
@@ -450,18 +867,18 @@ def auntenticacion(usuario,password):
 def extraerNombreUsuarioMedianteRfc(rfcProspecto):
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select id from razon_social where rfc = '{rfcProspecto}';")
+        cursor.execute("select id from razon_social where rfc = %s;", (rfcProspecto,))
         resultadoSql = cursor.fetchall()
 
         for r in resultadoSql:
-            cursor.execute(f"select id_usuario from usuario_razonsocial where razon_social = '{r[0]}';")
+            cursor.execute("select id_usuario from usuario_razonsocial where razon_social = %s;", (r[0],))
             resultadoSqlUsuarioRazonSocial = cursor.fetchall()
 
 
         for rur in resultadoSqlUsuarioRazonSocial:
             idUsuarioProspecto = rur[0]
 
-        cursor.execute(f"select nombre from usuarios where id = '{idUsuarioProspecto}';")
+        cursor.execute("select nombre from usuarios where id = %s;", (idUsuarioProspecto,))
         resultadoSqlUsuarios = cursor.fetchall()
 
         for ru in resultadoSqlUsuarios:
@@ -473,7 +890,7 @@ def extraerNombreUsuarioMedianteRfc(rfcProspecto):
 def extraerNombreUsuarioMedianteCorreo(correoUsuario):
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select nombre from usuarios where correo = '{correoUsuario}';")
+        cursor.execute("select nombre from usuarios where correo = %s;", (correoUsuario,))
         resultadoSql = cursor.fetchall()
 
         for r in resultadoSql:
@@ -495,13 +912,13 @@ def extraerGruposUser(idUsuarioProspecto):
 def obtenerCorreoMedianteRfc(rfcProspecto):
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"""select usuarios.correo 
+        cursor.execute("""select usuarios.correo 
                             from usuarios 
                                 inner join usuario_razonsocial 
                                 inner join razon_social
                             on (usuarios.id = usuario_razonsocial.id_usuario)
                             and (usuario_razonsocial.razon_social = razon_social.id)
-                            where razon_social.rfc = '{rfcProspecto}';""")
+                            where razon_social.rfc = %s;""", (rfcProspecto,))
         resultadoConsultaCorreo = cursor.fetchall()
 
         for rcc in resultadoConsultaCorreo:
@@ -614,7 +1031,7 @@ def crearUsuario(session):
 
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select id from usuarios where nombre = '{nombreUsuarioProspecto}';")
+        cursor.execute("select id from usuarios where nombre = %s;", (nombreUsuarioProspecto,))
         resultadoSqlUsuarios = cursor.fetchall()
 
         if resultadoSqlUsuarios:
@@ -633,11 +1050,13 @@ def crearUsuario(session):
                 ultimoIdUsuario = listaIdUsuarios[indice]
                 nuevoIdUsuario = ultimoIdUsuario + 1
 
-                cursor.execute(f"""insert into usuarios (id,nombre,correo,activo)
-                            values({nuevoIdUsuario},'{nombreUsuarioProspecto}','{session['correoProspecto']}',0);""")
+                cursor.execute("""insert into usuarios (id,nombre,correo,activo)
+                            values(%s,%s,%s,0);""", 
+                            (nuevoIdUsuario,nombreUsuarioProspecto,session['correoProspecto'],))
             else:
-                cursor.execute(f"""insert into usuarios (id,nombre,correo,activo)
-                            values(1,'{nombreUsuarioProspecto}','{session['correoProspecto']}',0);""")
+                cursor.execute("""insert into usuarios (id,nombre,correo,activo)
+                            values(1,%s,%s',0);""",
+                            (nuevoIdUsuario,nombreUsuarioProspecto,session['correoProspecto'],))
             
             conexion.commit()
 
@@ -652,7 +1071,7 @@ def asignarGrupoProspectos(usuarioProspecto):
 
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"update usuarios set rol = 'Prospectos' where nombre = '{usuarioProspecto}';")
+        cursor.execute("update usuarios set rol = 'Prospectos' where nombre = %s;", (usuarioProspecto,))
         conexion.commit()
     
     return True
@@ -673,12 +1092,18 @@ def iniciarProceso(jsonCliente,nombreUsuario):
             "idUsuarioProspecto": {
                 "value": nombreUsuario,
                 "type": "String"
+            },
+            "datosProcesoAccionistas": {
+                "value": "{\"documentosAccionistas\": []}",
+                "type": "String"
             }
         } 
     }
 
     response = requests.post(baseUrl, json=data)
+    print(response)
     instanciaProceso = response.json()
+    print(instanciaProceso)
     idInstanciaProceso = instanciaProceso['id']
 
     for l in instanciaProceso['links']:
@@ -689,7 +1114,7 @@ def iniciarProceso(jsonCliente,nombreUsuario):
     baseUrl = "http://"+host+"/engine-rest/task?processInstanceId="+str(jsonDatosProceso['id'])+""
     response = requests.get(baseUrl)
     listaJsonTaskProceso = response.json()
-    
+
     return idInstanciaProceso
 
 
@@ -752,12 +1177,11 @@ def validarCorreo(correoUsuario):
         else:
             nombreUsuario = False
 
-    print(nombreUsuario)
 
     if nombreUsuario != False:
         conexion = DB()
         with conexion.cursor() as cursor:
-            cursor.execute(f"select activo from usuarios where nombre = '{nombreUsuario}';")
+            cursor.execute("select activo from usuarios where nombre = %s;", (nombreUsuario,))
             resultadoConsultaUsuarios = cursor.fetchall()
 
             if resultadoConsultaUsuarios:
@@ -765,7 +1189,7 @@ def validarCorreo(correoUsuario):
                     numeroBytes = rcu[0]
                     numeroEntero = int.from_bytes(numeroBytes, "big")
                     if numeroEntero == 1:
-                        nombreUsuario = usuario['id']
+                        nombreUsuario = nombreUsuario
                         break
                     else:
                         nombreUsuario = False
@@ -773,13 +1197,12 @@ def validarCorreo(correoUsuario):
                 print("No hubo resultado de consulta.")
                 nombreUsuario = False
 
-    print(nombreUsuario)
     return nombreUsuario
 
 def validarRfcProspecto(rfcProspecto):
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select rfc from razon_social where rfc = '{rfcProspecto}';")
+        cursor.execute("select rfc from razon_social where rfc = %s;", (rfcProspecto,))
         record = cursor.fetchall()
 
         if record:
@@ -811,19 +1234,19 @@ def registrarTokenUsuarioProspecto(usuarioProspecto,tokenAcceso):
     fechaHoraActualCreacionTokenAcceso = fechaHoraActualCreacionTokenAcceso.strftime('%Y-%m-%d %H:%M:%S')
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select Id from usuarios where nombre = '{usuarioProspecto}';")
+        cursor.execute("select Id from usuarios where nombre = %s;", (usuarioProspecto,))
         record = cursor.fetchall()
 
         for r in record:
-            cursor.execute(f"select * from token where id_usuario = '{r[0]}';")
+            cursor.execute("select * from token where id_usuario = %s;", (r[0],))
             existeFilaTokenProspecto = cursor.fetchall()
 
             if existeFilaTokenProspecto:
                 for r in record:
-                    cursor.execute(f"""update token 
-                                        set Token = '{tokenAcceso}', inicio = '{fechaHoraActualCreacionTokenAcceso}', fin = '{fechaHoraExpiracionTokenAcceso}' , 
+                    cursor.execute("""update token 
+                                        set Token = %s, inicio = %s, fin = %s , 
                                         utilizado = 0 
-                                        where id_usuario = '{r[0]}';""")
+                                        where id_usuario = %s;""", (tokenAcceso,fechaHoraActualCreacionTokenAcceso,fechaHoraExpiracionTokenAcceso,r[0],))
                     conexion.commit()
             else:
                 cursor.execute(f"select id from token order by id;")
@@ -840,12 +1263,14 @@ def registrarTokenUsuarioProspecto(usuarioProspecto,tokenAcceso):
                     nuevoIdToken = ultimoIdToken + 1
 
                     for r in record:
-                        cursor.execute(f"""insert into token (id,id_usuario,Token,inicio,fin,utilizado) 
-                                            values({nuevoIdToken},'{r[0]}','{tokenAcceso}','{fechaHoraActualCreacionTokenAcceso}','{fechaHoraExpiracionTokenAcceso}',0);""")
+                        cursor.execute("""insert into token (id,id_usuario,Token,inicio,fin,utilizado) 
+                                            values(%s,%s,%s,%s,%s,0);""",
+                                            (nuevoIdToken,r[0],tokenAcceso,fechaHoraActualCreacionTokenAcceso,fechaHoraExpiracionTokenAcceso,))
                 else:
                     for r in record:
-                        cursor.execute(f"""insert into token (id,id_usuario,Token,inicio,fin,utilizado) 
-                                            values(1,'{r[0]}','{tokenAcceso}','{fechaHoraActualCreacionTokenAcceso}','{fechaHoraExpiracionTokenAcceso}',0);""")
+                        cursor.execute("""insert into token (id,id_usuario,Token,inicio,fin,utilizado) 
+                                            values(1,%s,%s,%s,%s,0);""",
+                                            (r[0],tokenAcceso,fechaHoraActualCreacionTokenAcceso,fechaHoraExpiracionTokenAcceso,))
                 
                 conexion.commit()
 
@@ -858,11 +1283,11 @@ def validaTokenAcceso(session,tokenAcceso):
     fechaHoraActual = datetime.strptime(fechaHoraActual, '%Y-%m-%d %H:%M:%S')
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"select id from usuarios where nombre = '{session['usuario']}';")
+        cursor.execute("select id from usuarios where nombre = %s;", (session['usuario'],))
         idUsuarioProspecto = cursor.fetchall()
 
         for x in idUsuarioProspecto:
-            cursor.execute(f"select Token,fin,utilizado from token where id_usuario = '{x[0]}';")
+            cursor.execute("select Token,fin,utilizado from token where id_usuario = %s;", (x[0],))
             tokenAccesoProspecto = cursor.fetchall()
 
         for t in tokenAccesoProspecto:
@@ -882,7 +1307,7 @@ def validaTokenAcceso(session,tokenAcceso):
                     existeTokenAcceso = False
 
         for x in idUsuarioProspecto:
-            cursor.execute(f"update token set utilizado = 1 where id_usuario = '{x[0]}';")
+            cursor.execute("update token set utilizado = 1 where id_usuario = %s;", (x[0],))
             conexion.commit()
     
     return existeTokenAcceso
@@ -900,7 +1325,7 @@ def validarToken(session,tokenAcceso):
 def actualizarStatusCuenta(usuariosProspecto):
     conexion = DB()
     with conexion.cursor() as cursor:
-        cursor.execute(f"update usuarios set activo = 1 where nombre = '{usuariosProspecto}';")
+        cursor.execute("update usuarios set activo = 1 where nombre = %s;", (usuariosProspecto,))
         conexion.commit()
 
     return True
@@ -910,7 +1335,7 @@ def registrarProceso(jsonProceso,usuarioProspecto,idInstanciaProceso,rutaDistrib
     conexion = DB()
     with conexion.cursor() as cursor:
 
-        cursor.execute(f"select id from distribuidor where distribuidor = '{jsonProceso['distribuidor']}';")
+        cursor.execute("select id from distribuidor where distribuidor = %s;", (jsonProceso['distribuidor'],))
         resultadoSqlDistribuidor = cursor.fetchall()
 
         if resultadoSqlDistribuidor:
@@ -932,26 +1357,26 @@ def registrarProceso(jsonProceso,usuarioProspecto,idInstanciaProceso,rutaDistrib
                 ultimoIdDistribuidor = listaIdDistribuidores[indice]
                 nuevoIdDistribuidor = ultimoIdDistribuidor + 1
 
-                cursor.execute(f"insert into distribuidor values({nuevoIdDistribuidor},'{jsonProceso['distribuidor']}',Null,'{rutaDistribuidor}');")
+                cursor.execute("insert into distribuidor values(%s,%s,Null,%s);", (nuevoIdDistribuidor,jsonProceso['distribuidor'],rutaDistribuidor,))
             else:
-                cursor.execute(f"insert into distribuidor values(100001,'{jsonProceso['distribuidor']}',Null,'{rutaDistribuidor}');")
+                cursor.execute("insert into distribuidor values(100001,%s,Null,%s);", (jsonProceso['distribuidor'],rutaDistribuidor,))
 
             conexion.commit()
 
-            cursor.execute(f"select id from distribuidor where distribuidor = '{jsonProceso['distribuidor']}';")
+            cursor.execute("select id from distribuidor where distribuidor = %s;", (jsonProceso['distribuidor'],))
             resultadoSqldistribuidor = cursor.fetchall()
 
             for rd in resultadoSqldistribuidor:
                 idDistribuidor = rd[0]
 
 
-        cursor.execute(f"select id from grupo_trabajo where grupo_trabajo = '{jsonProceso['grupoTrabajo']}';")
+        cursor.execute("select id from grupo_trabajo where grupo_trabajo = %s;", (jsonProceso['grupoTrabajo'],))
         resultadoSqlGrupoTrabajo = cursor.fetchall()
 
         for rgt in resultadoSqlGrupoTrabajo:
             idGrupoTrabajo = rgt[0]
 
-        cursor.execute(f"select Id,nombre from usuarios where nombre = '{usuarioProspecto}' group by nombre;")
+        cursor.execute("select Id,nombre from usuarios where nombre = %s group by nombre;", (usuarioProspecto,))
         resultadoSqlUsuarios = cursor.fetchall()
 
         for ru in resultadoSqlUsuarios:
@@ -971,11 +1396,11 @@ def registrarProceso(jsonProceso,usuarioProspecto,idInstanciaProceso,rutaDistrib
             indice = longitudListaConsultaRazonSocial - 1
             ultimoIdRazonSocial = listaIdRazonSocial[indice]
             nuevoIdRazonSocial = ultimoIdRazonSocial + 1
-            cursor.execute(f"insert into razon_social values({nuevoIdRazonSocial},'{idInstanciaProceso}','{jsonProceso['rfc']}','{jsonProceso['razonSocial']}',{idDistribuidor},Null,0);")
-            cursor.execute(f"insert into usuario_razonsocial values({idUsuario},{nuevoIdRazonSocial});")
+            cursor.execute("insert into razon_social values(%s,%s,%s,%s,%s,Null,0);", (nuevoIdRazonSocial,idInstanciaProceso,jsonProceso['rfc'],jsonProceso['razonSocial'],idDistribuidor,))
+            cursor.execute("insert into usuario_razonsocial values(%s,%s);", (idUsuario,nuevoIdRazonSocial,))
         else:
-            cursor.execute(f"insert into razon_social values(100001,'{idInstanciaProceso}','{jsonProceso['rfc']}','{jsonProceso['razonSocial']}',{idDistribuidor},Null,0);")
-            cursor.execute(f"insert into usuario_razonsocial values({idUsuario},100001);")
+            cursor.execute("insert into razon_social values(100001,%s,%s,%s,%s,Null,0);", (idInstanciaProceso,jsonProceso['rfc'],jsonProceso['razonSocial'],idDistribuidor,))
+            cursor.execute("insert into usuario_razonsocial values(%s,100001);", (idUsuario,))
 
 
         conexion.commit()
@@ -983,10 +1408,19 @@ def registrarProceso(jsonProceso,usuarioProspecto,idInstanciaProceso,rutaDistrib
     return True
 
 def registrarDatosProcesoFinal(jsonProceso,idproceso):
+    
+
+    if "id" in jsonProceso:
+        jsonProceso.pop('id')
+    if "tarea" in jsonProceso:
+        jsonProceso.pop('tarea')
+    if "candidatoGrupoPerteneciente" in jsonProceso:
+        jsonProceso.pop('candidatoGrupoPerteneciente')
+
     conexion = DB()
     with conexion.cursor() as cursor:
         ##Consulta a tabla distribuidor
-        cursor.execute(f"select id from razon_social where rfc = '{jsonProceso['cliente']['rfc']}';")
+        cursor.execute("select id from razon_social where rfc = %s;", (jsonProceso['cliente']['rfc'],))
         resultadoConsulta = cursor.fetchall()
 
         cursor.execute(f"select id from datos_contrato order by id")
@@ -1004,11 +1438,11 @@ def registrarDatosProcesoFinal(jsonProceso,idproceso):
 
             for r in resultadoConsulta:
                 jsonStringProceso = json.dumps(jsonProceso)
-                cursor.execute(f"insert into datos_contrato values({nuevoId},'{idproceso}','{r[0]}','{jsonStringProceso}');")
+                cursor.execute("insert into datos_contrato values(%s,%s,%s,%s);", (nuevoId,idproceso,r[0],jsonStringProceso,))
         else:
             for r in resultadoConsulta:
                 jsonStringProceso = json.dumps(jsonProceso)
-                cursor.execute(f"insert into datos_contrato values(1,'{idproceso}','{r[0]}','{jsonStringProceso}');")
+                cursor.execute("insert into datos_contrato values(1,%s,%s,%s);", (idproceso,r[0],jsonStringProceso,))
 
         conexion.commit()
     return True
@@ -1017,7 +1451,7 @@ def actualizarStatusProceso(idProceso):
     conexion = DB()
     with conexion.cursor() as cursor:
 
-        cursor.execute(f"update razon_social set status = 1 where id_instancia_proceso = '{idProceso}';")
+        cursor.execute(f"update razon_social set status = 1 where id_instancia_proceso = %s;", (idProceso,))
         conexion.commit()
     return True
 
@@ -1027,7 +1461,7 @@ def registrarEventoFinal(jsonEventoTarea):
     conexion = DB()
     with conexion.cursor() as cursor:
 
-        cursor.execute(f"select id from usuarios where nombre = '{jsonEventoTarea['usuarioProspecto']}'")
+        cursor.execute("select id from usuarios where nombre = %s;", (jsonEventoTarea['usuarioProspecto'],))
         resultadoConsultaUsuarios = cursor.fetchall()
 
         cursor.execute(f"select id from eventos order by id")
@@ -1058,15 +1492,19 @@ def registrarEventoFinal(jsonEventoTarea):
             nuevoIdEvento = ultimoIdEventos + 1
 
             for rcu in resultadoConsultaUsuarios:
-                cursor.execute(f"insert into eventos values({nuevoIdEvento},'{jsonEventoTarea['proceso']}','{rcu[0]}','{jsonEventoTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
-
+                cursor.execute("insert into eventos values(%s,%s,%s,%s,%s,%s);", (nuevoIdEvento,jsonEventoTarea['proceso'],rcu[0],jsonEventoTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
         else:
             for rcu in resultadoConsultaUsuarios:
-                cursor.execute(f"insert into eventos values(1,'{jsonEventoTarea['proceso']}','{rcu[0]}','{jsonEventoTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
+                cursor.execute("insert into eventos values(1,%s,%s,%s,%s,%s);", (jsonEventoTarea['proceso'],rcu[0],jsonEventoTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
 
         conexion.commit()
 
-    return True
+        jsonResultado = {
+            "Status": True,
+            "Message": "Json almacenado en la BD."
+        }
+
+    return jsonResultado
 
 def registrarEvento(idProceso):
     zona = timezone('America/Mexico_City')
@@ -1081,7 +1519,7 @@ def registrarEvento(idProceso):
             jsonRegistroTarea = responseVariables['datosRegistroTareaAnterior']['value']
             jsonRegistroTarea = json.loads(jsonRegistroTarea)
 
-            cursor.execute(f"select id from usuarios where nombre = '{jsonRegistroTarea['usuarioProspecto']}'")
+            cursor.execute("select id from usuarios where nombre = %s;", (jsonRegistroTarea['usuarioProspecto'],))
             resultadoConsultaUsuarios = cursor.fetchall()
 
             cursor.execute(f"select id from eventos order by id")
@@ -1112,11 +1550,11 @@ def registrarEvento(idProceso):
                 nuevoIdEvento = ultimoIdEventos + 1
 
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values({nuevoIdEvento},'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
-
+                    cursor.execute("insert into eventos values(%s,%s,%s,%s,%s,%s);", (nuevoIdEvento,jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
+                                            
             else:
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values(1,'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
+                    cursor.execute("insert into eventos values(1,%s,%s,%s,%s,%s);", (jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
 
             conexion.commit()
 
@@ -1125,7 +1563,7 @@ def registrarEvento(idProceso):
             jsonRegistroTarea = responseVariables['datosRegistroTareaAnteriorRutaProspecto']['value']
             jsonRegistroTarea = json.loads(jsonRegistroTarea)
 
-            cursor.execute(f"select id from usuarios where nombre = '{jsonRegistroTarea['usuarioProspecto']}'")
+            cursor.execute("select id from usuarios where nombre = %s;", (jsonRegistroTarea['usuarioProspecto'],))
             resultadoConsultaUsuarios = cursor.fetchall()
 
             cursor.execute(f"select id from eventos order by id")
@@ -1156,11 +1594,11 @@ def registrarEvento(idProceso):
                 nuevoIdEvento = ultimoIdEventos + 1
 
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values({nuevoIdEvento},'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
-
+                    cursor.execute("insert into eventos values(%s,%s,%s,%s,%s,%s);", (nuevoIdEvento,jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
+                                            
             else:
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values(1,'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
+                    cursor.execute("insert into eventos values(1,%s,%s,%s,%s,%s);", (jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
 
             conexion.commit()
 
@@ -1168,7 +1606,7 @@ def registrarEvento(idProceso):
             jsonRegistroTarea = responseVariables['datosRegistroTareaAnteriorRutaMesaControl']['value']
             jsonRegistroTarea = json.loads(jsonRegistroTarea)
 
-            cursor.execute(f"select id from usuarios where nombre = '{jsonRegistroTarea['usuarioProspecto']}'")
+            cursor.execute(f"select id from usuarios where nombre = %s;", (jsonRegistroTarea['usuarioProspecto'],))
             resultadoConsultaUsuarios = cursor.fetchall()
 
             cursor.execute(f"select id from eventos order by id")
@@ -1199,11 +1637,11 @@ def registrarEvento(idProceso):
                 nuevoIdEvento = ultimoIdEventos + 1
 
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values({nuevoIdEvento},'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
-
+                    cursor.execute("insert into eventos values(%s,%s,%s,%s,%s,%s);", (nuevoIdEvento,jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
+                                            
             else:
                 for rcu in resultadoConsultaUsuarios:
-                    cursor.execute(f"insert into eventos values(1,'{jsonRegistroTarea['proceso']}','{rcu[0]}','{jsonRegistroTarea['tarea']}','{nuevaFechaCreacionTareaString}','{nuevaFechaFinalizacionTareaString}');")
+                    cursor.execute("insert into eventos values(1,%s,%s,%s,%s,%s);", (jsonRegistroTarea['proceso'],rcu[0],jsonRegistroTarea['tarea'],nuevaFechaCreacionTareaString,nuevaFechaFinalizacionTareaString,))
 
             conexion.commit()
 
@@ -1218,7 +1656,7 @@ def sendEmail(correoProspecto,tokenAcceso,seccionTokenAcceso,rutaDistribuidor = 
     conexion = DB()
     with conexion.cursor() as cursor:
 
-        cursor.execute(f"select inicio,fin from token where Token = {tokenAcceso};")
+        cursor.execute("select inicio,fin from token where Token = %s;", (tokenAcceso,))
         resultadoSqlToken = cursor.fetchall()
 
     for rst in resultadoSqlToken:
@@ -1228,32 +1666,32 @@ def sendEmail(correoProspecto,tokenAcceso,seccionTokenAcceso,rutaDistribuidor = 
     contenidoCorreo = f"""
         <html>
         <body>
-            <p>Buen dia.</p>
-            <p>Se te hace envio del codigo de seguridad para validar la pertenencia del correo.</p>
+            <p>Hola, </p>
+            <p>A continuación encontrarás el código de seguridad para acceder a la plataforma Gestor de contratos AlquimiaPay.</p>
             <p>Fecha de creacion: {tokenFechaCreado}</p>
             <p>Vigente hasta: {tokenFechaVigencia}.</p>
 
-            <h2>{tokenAcceso}</h2>
+            <h2><center>{tokenAcceso}</center></h2>
         </body>
         </html>
     """
 
     if seccionTokenAcceso == "noExisteRFC":
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/{rutaDistribuidor}/tokenAccesoNoExisteRFC\">Validar Correo</a>"
+        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/{rutaDistribuidor}/tokenAccesoNoExisteRFC\">Ingresar a plataforma</a>"
     if seccionTokenAcceso == "ExisteRFC":
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/{rutaDistribuidor}/tokenAccesoExisteRFC\">Validar Correo</a>"
+        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/{rutaDistribuidor}/tokenAccesoExisteRFC\">Ingresar a plataforma</a>"
     if seccionTokenAcceso == "login":
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/tokenAccesoCorreoUsuario\">Validar Correo</a>"
-
+        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/tokenAccesoCorreoUsuario\">Ingresar a plataforma</a>"
+    
     url = "https://api.elasticemail.com/v2/email/send"
     data = {
-        'from' : 'jcrivera@vitaebeneficios.com',
-		'fromName' : 'Alquimia',
-		'apikey' : '0CCF441FD6276D0BB56AEE771C46AB9CC888A0DBF8E18D1A525D49B4E2A9DE9C1FC7D81006F3A545F73FF244EF465BF4',
-		'subject' : 'Codigo de Seguridad',
+        'from' : 'workflow@alquimiapay.com',
+		'fromName' : 'AlquimiaPay',
+		'apikey' : '',
+		'subject' : 'Código de seguridad',
 		'to' : correoProspecto,
 		'template' : 'notificacionesWorkflow',
-        'merge_encabezado' : "Codigo de Seguridad",
+        'merge_encabezado' : "Código de seguridad",
         'merge_contenidoHtml' :  contenidoCorreo,
         'merge_tituloBoton' :  btnEnlace,
     }
@@ -1285,7 +1723,7 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreo']['body']}</p>
                     <ul>
@@ -1296,24 +1734,34 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreo']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreo']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreo']['btnLink']}</a>"
             
             else:
 
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreo']['body']}</p>
-                    </body>
-                    </html>
+                    
                 """
 
+                if "bodyExtra" in datosJsonCorreo['datosCorreo']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreo']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreo']['btnLink']}</a>"
+            
             conexion = DB()
             with conexion.cursor() as cursor:
 
-                cursor.execute(f"select correo,activo from usuarios where rol = '{datosJsonCorreo['datosCorreo']['responsables']}'")
+                cursor.execute("select correo,activo from usuarios where rol = %s;", (datosJsonCorreo['datosCorreo']['responsables'],))
                 resultadoConsultaUsuarios = cursor.fetchall()
                 Destinatarios = []
 
@@ -1322,13 +1770,13 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     numeroEntero = int.from_bytes(numeroBytes, "big")
                     if numeroEntero == 1:
                         Destinatarios.append(rcu[0])
-                        print(Destinatarios)
+                        
         else:
             if "documentosRechazados" in datosJsonCorreo['datosCorreo']:
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreo']['body']}</p>
                     <ul>
@@ -1339,34 +1787,66 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreo']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreo']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreo']['btnLink']}</a>"
             
             else:
+                if "razonSocialAccionariaDocumentosSolicitados" in datosJsonCorreo['datosCorreo']:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreo']['body']}</p>
+                        <ul>
+                    """
 
-                contenidoCorreo = f"""
-                    <html>
-                    <body>
-                        <p>Buen dia.</p>
-                        <p></p>
-                        <p>{datosJsonCorreo['datosCorreo']['body']}</p>
-                    </body>
-                    </html>
-                """
+                    for d in datosJsonCorreo['datosCorreo']['razonSocialAccionariaDocumentosSolicitados']:
+                        elementoHtml = f"<li><p><b>{d['razonSocial']}:</b></p></li>"
+                        contenidoCorreo = contenidoCorreo + elementoHtml
+
+                    contenidoCorreo = contenidoCorreo + "</ul>"
+                    if "bodyExtra" in datosJsonCorreo['datosCorreo']:
+                        contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreo']['bodyExtra']}</p>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreo']['btnLink']}</a>"
+
+                else:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreo']['body']}</p>
+                        
+                    """
+
+                    if "bodyExtra" in datosJsonCorreo['datosCorreo']:
+                        contenidoCorreo = contenidoCorreo + "</body></html>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreo']['btnLink']}</a>"
+            
             
             Destinatarios = jsonProceso['cliente']['email']
-            print(Destinatarios)
+            
 
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Login</a>"
+        #btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Revisar documentación</a>"
 
         url = "https://api.elasticemail.com/v2/email/send"
         data = {
-            'from' : 'jcrivera@vitaebeneficios.com',
-            'fromName' : 'Alquimia',
-            'apikey' : '0CCF441FD6276D0BB56AEE771C46AB9CC888A0DBF8E18D1A525D49B4E2A9DE9C1FC7D81006F3A545F73FF244EF465BF4',
+            'from' : 'workflow@alquimiapay.com',
+            'fromName' : 'AlquimiaPay',
+            'apikey' : '',
             'subject' : {datosJsonCorreo['datosCorreo']['subtitle']},
             'to' : Destinatarios,
             'template' : 'notificacionesWorkflow',
-            'merge_encabezado' : {datosJsonCorreo['datosCorreo']['subtitle']},
+            'merge_encabezado' : datosJsonCorreo['datosCorreo']['encabezado'],
             'merge_contenidoHtml' :  contenidoCorreo,
             'merge_tituloBoton' :  btnEnlace,
         }
@@ -1387,7 +1867,7 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
                     <ul>
@@ -1398,24 +1878,34 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaProspecto']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaProspecto']['btnLink']}</a>"
             
             else:
 
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
-                    </body>
-                    </html>
+                    
                 """
 
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaProspecto']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaProspecto']['btnLink']}</a>"
+            
             conexion = DB()
             with conexion.cursor() as cursor:
 
-                cursor.execute(f"select correo,activo from usuarios where rol = '{datosJsonCorreo['datosCorreoRutaProspecto']['responsables']}'")
+                cursor.execute("select correo,activo from usuarios where rol = %s;", (datosJsonCorreo['datosCorreoRutaProspecto']['responsables'],))
                 resultadoConsultaUsuarios = cursor.fetchall()
                 Destinatarios = []
 
@@ -1424,13 +1914,13 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     numeroEntero = int.from_bytes(numeroBytes, "big")
                     if numeroEntero == 1:
                         Destinatarios.append(rcu[0])
-                        print(Destinatarios)
+                        
         else:
             if "documentosRechazados" in datosJsonCorreo['datosCorreoRutaProspecto']:
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
                     <ul>
@@ -1441,34 +1931,66 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaProspecto']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaProspecto']['btnLink']}</a>"
             
             else:
+                if "razonSocialAccionariaDocumentosSolicitados" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
+                        <ul>
+                    """
 
-                contenidoCorreo = f"""
-                    <html>
-                    <body>
-                        <p>Buen dia.</p>
-                        <p></p>
-                        <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
-                    </body>
-                    </html>
-                """
+                    for d in datosJsonCorreo['datosCorreoRutaProspecto']['razonSocialAccionariaDocumentosSolicitados']:
+                        elementoHtml = f"<li><p><b>{d['razonSocial']}:</b></p></li>"
+                        contenidoCorreo = contenidoCorreo + elementoHtml
+
+                    contenidoCorreo = contenidoCorreo + "</ul>"
+                    if "bodyExtra" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                        contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaProspecto']['bodyExtra']}</p>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaProspecto']['btnLink']}</a>"
+
+                else:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreoRutaProspecto']['body']}</p>
+                        
+                    """
+
+                    if "bodyExtra" in datosJsonCorreo['datosCorreoRutaProspecto']:
+                        contenidoCorreo = contenidoCorreo + "</body></html>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaProspecto']['btnLink']}</a>"
+            
             
             Destinatarios = jsonProceso['cliente']['email']
-            print(Destinatarios)
-        
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Login</a>"
+            
+
+        #btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Revisar documentación</a>"
 
         url = "https://api.elasticemail.com/v2/email/send"
         data = {
-            'from' : 'jcrivera@vitaebeneficios.com',
-            'fromName' : 'Alquimia',
-            'apikey' : '0CCF441FD6276D0BB56AEE771C46AB9CC888A0DBF8E18D1A525D49B4E2A9DE9C1FC7D81006F3A545F73FF244EF465BF4',
+            'from' : 'workflow@alquimiapay.com',
+            'fromName' : 'AlquimiaPay',
+            'apikey' : '',
             'subject' : {datosJsonCorreo['datosCorreoRutaProspecto']['subtitle']},
             'to' : Destinatarios,
             'template' : 'notificacionesWorkflow',
-            'merge_encabezado' : {datosJsonCorreo['datosCorreoRutaProspecto']['subtitle']},
+            'merge_encabezado' : datosJsonCorreo['datosCorreoRutaProspecto']['encabezado'],
             'merge_contenidoHtml' :  contenidoCorreo,
             'merge_tituloBoton' :  btnEnlace,
         }
@@ -1489,7 +2011,7 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
                     <ul>
@@ -1500,24 +2022,34 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaMesaControl']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaMesaControl']['btnLink']}</a>"
             
             else:
 
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
-                    </body>
-                    </html>
+                    
                 """
 
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaMesaControl']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaMesaControl']['btnLink']}</a>"
+            
             conexion = DB()
             with conexion.cursor() as cursor:
 
-                cursor.execute(f"select correo,activo from usuarios where rol = '{datosJsonCorreo['datosCorreoRutaMesaControl']['responsables']}'")
+                cursor.execute("select correo,activo from usuarios where rol = %s;", (datosJsonCorreo['datosCorreoRutaMesaControl']['responsables'],))
                 resultadoConsultaUsuarios = cursor.fetchall()
                 Destinatarios = []
 
@@ -1526,13 +2058,13 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     numeroEntero = int.from_bytes(numeroBytes, "big")
                     if numeroEntero == 1:
                         Destinatarios.append(rcu[0])
-                        print(Destinatarios)
+                        
         else:
             if "documentosRechazados" in datosJsonCorreo['datosCorreoRutaMesaControl']:
                 contenidoCorreo = f"""
                     <html>
                     <body>
-                        <p>Buen dia.</p>
+                        <p>Hola, </p>
                         <p></p>
                         <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
                     <ul>
@@ -1543,34 +2075,66 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
                     elementoHtml = f"<li><p><b>{d['documento']}:</b> {d['motivoRechazo']}</p></li>"
                     contenidoCorreo = contenidoCorreo + elementoHtml
 
-                contenidoCorreo = contenidoCorreo + "</ul></body></html>"
+                contenidoCorreo = contenidoCorreo + "</ul>"
+                if "bodyExtra" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                    contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaMesaControl']['bodyExtra']}</p>"
+
+                contenidoCorreo = contenidoCorreo + "</body></html>"
+                btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaMesaControl']['btnLink']}</a>"
             
             else:
+                if "razonSocialAccionariaDocumentosSolicitados" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
+                        <ul>
+                    """
 
-                contenidoCorreo = f"""
-                    <html>
-                    <body>
-                        <p>Buen dia.</p>
-                        <p></p>
-                        <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
-                    </body>
-                    </html>
-                """
+                    for d in datosJsonCorreo['datosCorreoRutaMesaControl']['razonSocialAccionariaDocumentosSolicitados']:
+                        elementoHtml = f"<li><p><b>{d['razonSocial']}:</b></p></li>"
+                        contenidoCorreo = contenidoCorreo + elementoHtml
+
+                    contenidoCorreo = contenidoCorreo + "</ul>"
+                    if "bodyExtra" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                        contenidoCorreo = contenidoCorreo + f"<p>{datosJsonCorreo['datosCorreoRutaMesaControl']['bodyExtra']}</p>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaMesaControl']['btnLink']}</a>"
+
+                else:
+                    contenidoCorreo = f"""
+                        <html>
+                        <body>
+                            <p>Hola, </p>
+                            <p></p>
+                            <p>{datosJsonCorreo['datosCorreoRutaMesaControl']['body']}</p>
+                        
+                    """
+
+                    if "bodyExtra" in datosJsonCorreo['datosCorreoRutaMesaControl']:
+                        contenidoCorreo = contenidoCorreo + "</body></html>"
+
+                    contenidoCorreo = contenidoCorreo + "</body></html>"
+                    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">{datosJsonCorreo['datosCorreoRutaMesaControl']['btnLink']}</a>"
+            
             
             Destinatarios = jsonProceso['cliente']['email']
-            print(Destinatarios)
-        
-        btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Login</a>"
+            
+
+        #btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://altas.alquimiapay.com/login\">Revisar documentación</a>"
 
         url = "https://api.elasticemail.com/v2/email/send"
         data = {
-            'from' : 'jcrivera@vitaebeneficios.com',
-            'fromName' : 'Alquimia',
-            'apikey' : '0CCF441FD6276D0BB56AEE771C46AB9CC888A0DBF8E18D1A525D49B4E2A9DE9C1FC7D81006F3A545F73FF244EF465BF4',
+            'from' : 'workflow@alquimiapay.com',
+            'fromName' : 'AlquimiaPay',
+            'apikey' : '',
             'subject' : {datosJsonCorreo['datosCorreoRutaMesaControl']['subtitle']},
             'to' : Destinatarios,
             'template' : 'notificacionesWorkflow',
-            'merge_encabezado' : {datosJsonCorreo['datosCorreoRutaMesaControl']['subtitle']},
+            'merge_encabezado' : datosJsonCorreo['datosCorreoRutaMesaControl']['encabezado'],
             'merge_contenidoHtml' :  contenidoCorreo,
             'merge_tituloBoton' :  btnEnlace,
         }
@@ -1581,9 +2145,50 @@ def sendEmailTareasProceso(idProceso,jsonProceso):
 
         print(jsonA)
         evento = jsonA["success"]
-    
+
     return True
 
+
+def sendEmailNotificarCreacionCuentaCliente(idproceso,jsonProceso):
+
+    contenidoCorreo = f"""
+        <html>
+        <body>
+            <p>¡Felicidades!</p>
+            <p>Tu cuenta AlquimiaPay ha sido creada con éxito.</p>
+            <p></p>
+            <p><b>Razón social:</b> {jsonProceso['cliente']['razonSocial']}</p>
+            <p><b>RFC:</b> {jsonProceso['cliente']['rfc']}.</p>
+            <p><b>CLABE:</b> {jsonProceso['cuentaCliente']['CLABE']}.</p>
+            <p><b>Institución:</b> ASP Integra.</p>
+            <p><b>Número de cuenta AlquimiaPay:</b> {jsonProceso['cuentaCliente']['numeroCuentaAlquimiapay']}</p>
+        </body>
+        </html>
+    """
+
+    btnEnlace = f"<a rel=\"nofollow\" style=\"font-weight:normal; text-decoration:none; display:inline-block; color: white; font-size:16px;\" href=\"https://banca.alquimiapay.com/\">Ir a mi cuenta</a>"
+
+    url = "https://api.elasticemail.com/v2/email/send"
+    data = {
+        'from' : 'workflow@alquimiapay.com',
+		'fromName' : 'AlquimiaPay',
+		'apikey' : '',
+		'subject' : 'Tu cuenta AlquimiaPay ha sido creada',
+		'to' : jsonProceso['cliente']['email'],
+		'template' : 'notificacionesWorkflow',
+        'merge_encabezado' : "Tu cuenta AlquimiaPay está lista",
+        'merge_contenidoHtml' :  contenidoCorreo,
+        'merge_tituloBoton' :  btnEnlace,
+    }
+
+    res = requests.post(url, params = data)
+    resp = '' + res.text
+    jsonA = json.loads(resp)
+
+    print(jsonA)
+    evento = jsonA["success"]
+
+    return
 
 
 
@@ -1592,7 +2197,7 @@ def extraerDistribuidorMedianteRuta(rutaDistribuidor):
     conexion = DB()
     with conexion.cursor() as cursor:
         ##Consulta a tabla distribuidor
-        cursor.execute(f"select distribuidor from distribuidor where ruta = '{rutaDistribuidor}';")
+        cursor.execute("select distribuidor from distribuidor where ruta = %s;", (rutaDistribuidor,))
         resultadoConsulta = cursor.fetchall()
         
         for rc in resultadoConsulta:
@@ -1612,8 +2217,8 @@ def extraerRutaDistribuidorMedianteCorreo(correoProspecto):
                             on (distribuidor.id = razon_social.id_distribuidor)
                                 and (razon_social.id = usuario_razonsocial.razon_social)
                                 and (usuario_razonsocial.id_usuario = usuarios.id)
-                            where usuarios.correo = '{correoProspecto}'
-                            order by (distribuidor.ruta);""")
+                            where usuarios.correo = %s
+                            order by (distribuidor.ruta);""", (correoProspecto,))
         resultadoConsulta = cursor.fetchall()
         
         if resultadoConsulta:
@@ -1637,20 +2242,21 @@ def obtenerCandidatoGrupoTarea(listaProcesos):
             listaGrupos.append(nombreGrupo)
 
     for lg in listaGrupos:
-        baseUrl = "http://"+host+"/engine-rest/task"
-        data = {
-            "candidateGroup": lg,
-            "includeAssignedTasks": True
-        }
-        response = requests.post(baseUrl, json=data)
-        jsonListaTask = response.json()
+        if lg != "administradores":
+            baseUrl = "http://"+host+"/engine-rest/task"
+            data = {
+                "candidateGroup": lg,
+                "includeAssignedTasks": True
+            }
+            response = requests.post(baseUrl, json=data)
+            jsonListaTask = response.json()
 
-        if jsonListaTask:
-            for jlt in jsonListaTask:
-                for lp in listaProcesos:
-                    if jlt['id'] == lp['idtask']:
-                        jsonProceso = lp
-                        jsonProceso['candidatoGrupoPerteneciente'] = lg
+            if jsonListaTask:
+                for jlt in jsonListaTask:
+                    for lp in listaProcesos:
+                        if jlt['id'] == lp['idtask']:
+                            jsonProceso = lp
+                            jsonProceso['candidatoGrupoPerteneciente'] = lg
 
     return listaProcesos
 
@@ -1674,7 +2280,7 @@ def verificarExisteRutaDistribuidor(rutaDistribuidor):
     conexion = DB()
     with conexion.cursor() as cursor:
 
-        cursor.execute(f"select id from distribuidor where ruta = '{rutaDistribuidor}';")
+        cursor.execute("select id from distribuidor where ruta = %s;", (rutaDistribuidor,))
         resultadoConsultaDistribuidor = cursor.fetchall()
 
         if resultadoConsultaDistribuidor:
@@ -1683,3 +2289,279 @@ def verificarExisteRutaDistribuidor(rutaDistribuidor):
             existeRutaDistribuidor = False
 
     return existeRutaDistribuidor
+
+
+def comprobarValidacionEstructuraAccionaria(listaValueForm, jsonDatosProcesoAccionistas):
+
+    if "validacionEstructuraAccionaria" in jsonDatosProcesoAccionistas:
+        #listaRazonSocialValidando = jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialValidando']
+         for lvf in listaValueForm:
+            if lvf[0] == "checkboxValidarEstructuraAccionista":
+                if lvf[1] == "true":
+                    jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['estructuraCompleta'] = True
+                    jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante'] = []
+                    #jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialValidando'] = []
+                else:
+                    listaRazonSocialAccionarios = []
+                    listaJsonReferenciaRazonSocialAccionarios = []
+                    for lvfrs in listaValueForm:
+                        #if len(lvfrs) == 2:
+
+                        if lvfrs[0] == "razonSocialAccionariaDocumentacionSolicitada":
+                            for lrsa in range(1,len(lvfrs)):
+                                listaRazonSocialAccionarios.append(lvfrs[lrsa])
+
+                            for lnrsa in listaRazonSocialAccionarios:
+                                for lvfdrsa in listaValueForm:
+                                    if lnrsa == lvfdrsa[0]:
+                                        jsonDatosRazonSocialAccinaria = {
+                                            "razonSocial": lnrsa,
+                                            "rfc": lvfdrsa[1]
+                                        }
+                                        listaJsonReferenciaRazonSocialAccionarios.append(jsonDatosRazonSocialAccinaria)
+                                        break
+                            #print(listaJsonReferenciaRazonSocialAccionarios)
+
+                            jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['estructuraCompleta'] = False
+                            jsonDatosProcesoAccionistas['validacionEstructuraAccionaria']['razonSocialAccionariaDocumentacionFaltante'] = listaJsonReferenciaRazonSocialAccionarios
+                break
+    else:
+        for lvf in listaValueForm:
+            if lvf[0] == "checkboxValidarEstructuraAccionista":
+                if lvf[1] == "true":
+                    data = {
+                        "estructuraCompleta": True,
+                        "razonSocialAccionariaDocumentacionFaltante": [],
+                        "razonSocialValidando": []
+                    }
+                else:
+                    listaRazonSocialAccionarios = []
+                    listaJsonReferenciaRazonSocialAccionarios = []
+                    for lvfrs in listaValueForm:
+                        if lvfrs[0] == "razonSocialAccionariaDocumentacionSolicitada":
+                            for lrsa in range(1,len(lvfrs)):
+                                listaRazonSocialAccionarios.append(lvfrs[lrsa])
+
+                            for lnrsa in listaRazonSocialAccionarios:
+                                for lvfdrsa in listaValueForm:
+                                    if lnrsa == lvfdrsa[0]:
+                                        jsonDatosRazonSocialAccinaria = {
+                                            "razonSocial": lnrsa,
+                                            "rfc": lvfdrsa[1]
+                                        }
+                                        listaJsonReferenciaRazonSocialAccionarios.append(jsonDatosRazonSocialAccinaria)
+
+                            
+                            data = {
+                                "estructuraCompleta": False,
+                                "razonSocialAccionariaDocumentacionFaltante": listaJsonReferenciaRazonSocialAccionarios,
+                                "razonSocialValidando": []
+                            }
+
+                jsonDatosProcesoAccionistas['validacionEstructuraAccionaria'] = data
+                break
+
+        
+    return jsonDatosProcesoAccionistas
+
+
+def conjuntarJsonProceso(jsonProceso,idProceso):
+
+    baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/datosProcesoAccionistas"
+    response = requests.get(baseUrl)
+    jsonResponse = response.json()
+    jsonDatosProcesoAccionistasString = jsonResponse['value']
+    jsonDatosProcesoAccionistas = json.loads(jsonDatosProcesoAccionistasString)
+
+    for jsdpa in jsonDatosProcesoAccionistas['documentosAccionistas']:
+
+        baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/"+jsdpa['rfc']+""
+        response = requests.get(baseUrl)
+        jsonResponseVariable = response.json()
+        jsonVariableRazonSocialAccionariaString = jsonResponseVariable['value']
+        jsonVariableRazonSocialAccionaria = json.loads(jsonVariableRazonSocialAccionariaString)
+
+        jsdpa['documentos'] = jsonVariableRazonSocialAccionaria['documentos']
+
+    jsonProceso.update(jsonDatosProcesoAccionistas)
+
+    
+    return jsonProceso
+
+
+def getRfcRazonSocialAccionaria(variable,jsonDatosProcesoAccionaria):
+    
+    for jdpa in jsonDatosProcesoAccionaria['documentosAccionistas']:
+        if variable == jdpa['razonSocial']:
+            rfcRazonSocialAccionaria = jdpa['rfc']
+            break
+        else:
+            rfcRazonSocialAccionaria = None
+
+    return rfcRazonSocialAccionaria
+
+
+def actualizarJsonProcesoDB(idProceso,jsonProceso,jsonDatosProcesoAccionistas):
+
+    if len(jsonDatosProcesoAccionistas['documentosAccionistas']) > 0:
+        for jsdpa in jsonDatosProcesoAccionistas['documentosAccionistas']:
+
+            baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/"
+            response = requests.get(baseUrl)
+            jsonResponseVariables = response.json()
+            if jsdpa['rfc'] in jsonResponseVariables:
+                jsonVariableRazonSocialAccionariaString = jsonResponseVariables[jsdpa['rfc']]['value']
+                jsonVariableRazonSocialAccionaria = json.loads(jsonVariableRazonSocialAccionariaString)
+            
+                jsdpa['documentos'] = jsonVariableRazonSocialAccionaria['documentos']
+
+    jsonProceso.update(jsonDatosProcesoAccionistas)
+
+    if "id" in jsonProceso:
+        jsonProceso.pop('id')
+    if "tarea" in jsonProceso:
+        jsonProceso.pop('tarea')
+    if "candidatoGrupoPerteneciente" in jsonProceso:
+        jsonProceso.pop('candidatoGrupoPerteneciente')
+
+    conexion = DB()
+    with conexion.cursor() as cursor:
+
+        cursor.execute("select id from datos_contrato where proceso = %s", (idProceso,))
+        resultadoConsultaDatosContrato = cursor.fetchall()
+
+        if resultadoConsultaDatosContrato:
+            for rcdc in resultadoConsultaDatosContrato:
+                idDatosContrato = rcdc[0]
+
+            jsonStringProceso = json.dumps(jsonProceso)
+            cursor.execute("update datos_contrato set datos_contrato = %s where id = %s;", (jsonStringProceso,idDatosContrato,))
+
+        conexion.commit()
+    
+
+    return True
+
+def registrarDatosProceso(idProceso,jsonProceso,jsonDatosProcesoAccionistas):
+
+    if len(jsonDatosProcesoAccionistas['documentosAccionistas']) > 0:
+        for jsdpa in jsonDatosProcesoAccionistas['documentosAccionistas']:
+
+            baseUrl = "http://"+host+"/engine-rest/process-instance/"+str(idProceso)+"/variables/"
+            response = requests.get(baseUrl)
+            jsonResponseVariables = response.json()
+            if jsdpa['rfc'] in jsonResponseVariables:
+                jsonVariableRazonSocialAccionariaString = jsonResponseVariables[jsdpa['rfc']]['value']
+                jsonVariableRazonSocialAccionaria = json.loads(jsonVariableRazonSocialAccionariaString)
+            
+                jsdpa['documentos'] = jsonVariableRazonSocialAccionaria['documentos']
+
+    jsonProceso.update(jsonDatosProcesoAccionistas)
+    
+    if "id" in jsonProceso:
+        jsonProceso.pop('id')
+    if "tarea" in jsonProceso:
+        jsonProceso.pop('tarea')
+    if "candidatoGrupoPerteneciente" in jsonProceso:
+        jsonProceso.pop('candidatoGrupoPerteneciente')
+
+    conexion = DB()
+    with conexion.cursor() as cursor:
+        ##Consulta a tabla distribuidor
+        cursor.execute("select id from razon_social where rfc = %s;", (jsonProceso['cliente']['rfc'],))
+        resultadoConsulta = cursor.fetchall()
+
+        cursor.execute(f"select id from datos_contrato order by id")
+        resultadoConsultaDatosContrato = cursor.fetchall()
+        listaIdDatosContrato = []
+
+        if resultadoConsultaDatosContrato:
+            for rdc in resultadoConsultaDatosContrato:
+                listaIdDatosContrato.append(rdc[0])
+
+            longitud = len(listaIdDatosContrato)
+            indice = longitud - 1
+            ultimoId = listaIdDatosContrato[indice]
+            nuevoId = ultimoId + 1
+
+            for r in resultadoConsulta:
+                jsonStringProceso = json.dumps(jsonProceso)
+                cursor.execute("insert into datos_contrato values(%s,%s,%s,%s);", (nuevoId,idProceso,r[0],jsonStringProceso,))
+        else:
+            for r in resultadoConsulta:
+                jsonStringProceso = json.dumps(jsonProceso)
+                cursor.execute("insert into datos_contrato values(1,%s,%s,%s);", (idProceso,r[0],jsonStringProceso,))
+
+        conexion.commit()
+    return True
+
+
+def fechaHoraInicioProceso(listaProcesos):
+
+    zonaHoraria = timezone('America/Mexico_City')
+    
+    for p in listaProcesos:
+        baseUrl = "http://"+host+"/engine-rest/history/process-instance/"+str(p['id'])+""
+        response = requests.get(baseUrl)
+        jsonHistoriaProceso = response.json()
+        
+        fechaHoraInicioProcesoString = jsonHistoriaProceso['startTime']
+        fechaHoraInicioProcesoString = fechaHoraInicioProcesoString.replace("T", " ")
+        fechaHoraInicioProceso = datetime.strptime(fechaHoraInicioProcesoString, '%Y-%m-%d %H:%M:%S.%f%z')
+        fechaHoraInicioProceso = fechaHoraInicioProceso.astimezone(zonaHoraria)
+        nuevaFechaCreacionTareaString = datetime.strftime(fechaHoraInicioProceso, '%Y-%m-%d %H:%M:%S.%f%z')
+        
+        p['fechaHoraInicioProceso'] = nuevaFechaCreacionTareaString[:-12]
+        p.pop('id')
+
+    return listaProcesos
+
+def tiempoTranscurridoTarea(listaProcesos):
+
+    zonaHoraria = timezone('America/Mexico_City')
+    
+    for p in listaProcesos:
+        baseUrl = "http://"+host+"/engine-rest/task/"+str(p['idtask'])+""
+        response = requests.get(baseUrl)
+        jsonTaskProceso = response.json()
+        fechaCreacionTareaString = jsonTaskProceso['created']
+        fechaCreacionTareaString = fechaCreacionTareaString.replace("T", " ")
+        fechaCreacionTarea = datetime.strptime(fechaCreacionTareaString, '%Y-%m-%d %H:%M:%S.%f%z')
+        fechaCreacionTarea = fechaCreacionTarea.astimezone(zonaHoraria)
+        nuevaFechaCreacionTareaString = datetime.strftime(fechaCreacionTarea, '%Y-%m-%d %H:%M:%S.%f%z')
+        #fechaHora = datetime.strptime(new, '%Y-%m-%d %H:%M:%S')
+        #print(fechaHora)
+        #p['fechaHora'] = nuevaFechaCreacionTareaString[:-12]
+    
+        fechaHoraActual = datetime.now(zonaHoraria)
+        #nuevaFechaCreacionTareaString = datetime.strftime(fechaHoraInicioProceso, '%Y-%m-%d %H:%M:%S.%f%z')
+        diferenciaFechas = fechaHoraActual - fechaCreacionTarea
+
+        print(diferenciaFechas.total_seconds())
+        segundosTotales = diferenciaFechas.total_seconds()
+        if segundosTotales <= 60:
+            tiempoTranscurrido = str(int(segundosTotales)) + " seg"
+        else:
+            minutos = segundosTotales / 60
+            if minutos <= 60:
+                tiempoTranscurrido = str(int(minutos)) + " min"
+            else:
+                horas = minutos / 60
+                if horas <= 24:
+                    tiempoTranscurrido = str(int(horas)) + " h"
+                else:
+                    dias = diferenciaFechas.days
+                    tiempoTranscurrido = str(dias) + " d"
+        
+        p['tiempoTranscurrido'] = tiempoTranscurrido
+        
+    return listaProcesos
+
+
+def obtenerGrupoArea(listaGruposUsuario):
+    listaGrupo = []
+    for lgu in listaGruposUsuario:
+        if lgu != "administradores":
+            listaGrupo.append(lgu)
+
+    return listaGrupo
